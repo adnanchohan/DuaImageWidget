@@ -14,11 +14,18 @@ import com.watchfulai.duaimagewidget.data.WidgetConfig
 import com.watchfulai.duaimagewidget.data.WidgetConfigRepository
 import com.watchfulai.duaimagewidget.image.ImageStorage
 import com.watchfulai.duaimagewidget.widget.DuaImageWidget
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 data class WidgetEditorUiState(
     val isLoading: Boolean = true,
@@ -29,6 +36,8 @@ data class WidgetEditorUiState(
     val cropMode: CropMode = CropMode.FIT,
     val cropTransform: CropTransform = CropTransform(),
     val backgroundColor: Int = DEFAULT_WIDGET_BACKGROUND,
+    val autoSaveCrop: Boolean = false,
+    val hasPersistedConfiguration: Boolean = false,
     val errorMessage: String? = null,
 )
 
@@ -42,6 +51,10 @@ class WidgetConfigurationViewModel(
 
     private var originalImageFileName: String? = null
     private var pendingImageFileName: String? = null
+    private var autoSaveJob: Job? = null
+    private var autoSaveRevision = 0L
+    private var persistedAutoSaveRevision = 0L
+    private val persistenceMutex = Mutex()
 
     init {
         viewModelScope.launch {
@@ -55,6 +68,8 @@ class WidgetConfigurationViewModel(
                 cropMode = existing?.cropMode ?: CropMode.FIT,
                 cropTransform = existing?.cropTransform ?: CropTransform(),
                 backgroundColor = existing?.backgroundColor ?: DEFAULT_WIDGET_BACKGROUND,
+                autoSaveCrop = existing?.autoSaveCrop ?: false,
+                hasPersistedConfiguration = existing != null,
                 errorMessage = if (existing != null && bitmap == null) {
                     "The previous image is no longer available. Please choose it again."
                 } else {
@@ -81,6 +96,7 @@ class WidgetConfigurationViewModel(
                             cropTransform = CropTransform(),
                         )
                     }
+                    scheduleAutoSave()
                 }
                 .onFailure { throwable ->
                     _uiState.update {
@@ -95,14 +111,25 @@ class WidgetConfigurationViewModel(
 
     fun setCropMode(mode: CropMode) {
         _uiState.update { it.copy(cropMode = mode) }
+        scheduleAutoSave()
     }
 
     fun setCropTransform(transform: CropTransform) {
         _uiState.update { it.copy(cropTransform = transform) }
+        scheduleAutoSave()
     }
 
     fun resetCrop() {
         _uiState.update { it.copy(cropTransform = CropTransform()) }
+        scheduleAutoSave()
+    }
+
+    fun setAutoSaveCrop(enabled: Boolean) {
+        if (_uiState.value.autoSaveCrop == enabled) return
+        _uiState.update { it.copy(autoSaveCrop = enabled, errorMessage = null) }
+        if (_uiState.value.hasPersistedConfiguration) {
+            scheduleAutoSave(immediate = true, requireAutoSaveEnabled = false)
+        }
     }
 
     fun dismissError() {
@@ -110,45 +137,114 @@ class WidgetConfigurationViewModel(
     }
 
     suspend fun save(): Boolean {
+        autoSaveJob?.cancel()
+        autoSaveJob?.join()
         val state = _uiState.value
-        val imageFileName = state.imageFileName ?: return false
+        if (state.imageFileName == null) return false
         if (state.isSaving) return false
 
         _uiState.update { it.copy(isSaving = true, errorMessage = null) }
-        return runCatching {
-            repository.save(
-                WidgetConfig(
-                    appWidgetId = appWidgetId,
-                    imageFileName = imageFileName,
-                    cropMode = state.cropMode,
-                    cropTransform = state.cropTransform,
-                    backgroundColor = state.backgroundColor,
-                ),
-            )
-            if (originalImageFileName != null && originalImageFileName != imageFileName) {
-                ImageStorage.delete(getApplication(), originalImageFileName!!)
+        return try {
+            persist(state)
+            persistedAutoSaveRevision = autoSaveRevision
+            _uiState.update {
+                it.copy(isSaving = false, hasPersistedConfiguration = true)
             }
-            originalImageFileName = imageFileName
-            pendingImageFileName = null
-            DuaImageWidget().update(getApplication(), appWidgetId)
-        }.fold(
-            onSuccess = {
-                _uiState.update { it.copy(isSaving = false) }
-                true
-            },
-            onFailure = { throwable ->
+            true
+        } catch (cancellation: CancellationException) {
+            _uiState.update { it.copy(isSaving = false) }
+            throw cancellation
+        } catch (throwable: Throwable) {
+            _uiState.update {
+                it.copy(
+                    isSaving = false,
+                    errorMessage = throwable.message ?: "The widget could not be saved.",
+                )
+            }
+            false
+        }
+    }
+
+    private fun scheduleAutoSave(
+        immediate: Boolean = false,
+        requireAutoSaveEnabled: Boolean = true,
+    ) {
+        val current = _uiState.value
+        if (!current.hasPersistedConfiguration || current.imageFileName == null) return
+        if (requireAutoSaveEnabled && !current.autoSaveCrop) return
+
+        val revision = ++autoSaveRevision
+        autoSaveJob?.cancel()
+        autoSaveJob = viewModelScope.launch {
+            if (!immediate) delay(AUTO_SAVE_DEBOUNCE_MILLIS)
+
+            val snapshot = _uiState.value
+            if (!snapshot.hasPersistedConfiguration || snapshot.imageFileName == null) return@launch
+            if (requireAutoSaveEnabled && !snapshot.autoSaveCrop) return@launch
+
+            try {
+                persist(snapshot)
+                persistedAutoSaveRevision = maxOf(persistedAutoSaveRevision, revision)
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (throwable: Throwable) {
                 _uiState.update {
                     it.copy(
-                        isSaving = false,
-                        errorMessage = throwable.message ?: "The widget could not be saved.",
+                        errorMessage = throwable.message ?: "Auto-save could not update the widget.",
                     )
                 }
-                false
-            },
-        )
+            }
+        }
+    }
+
+    suspend fun flushAutoSave() {
+        autoSaveJob?.cancel()
+        autoSaveJob?.join()
+        if (persistedAutoSaveRevision >= autoSaveRevision) return
+
+        val snapshot = _uiState.value
+        if (!snapshot.hasPersistedConfiguration || snapshot.imageFileName == null) return
+
+        try {
+            persist(snapshot)
+            persistedAutoSaveRevision = autoSaveRevision
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (throwable: Throwable) {
+            _uiState.update {
+                it.copy(
+                    errorMessage = throwable.message ?: "Auto-save could not update the widget.",
+                )
+            }
+        }
+    }
+
+    private suspend fun persist(state: WidgetEditorUiState) {
+        val imageFileName = checkNotNull(state.imageFileName)
+        persistenceMutex.withLock {
+            withContext(NonCancellable) {
+                repository.save(
+                    WidgetConfig(
+                        appWidgetId = appWidgetId,
+                        imageFileName = imageFileName,
+                        cropMode = state.cropMode,
+                        cropTransform = state.cropTransform,
+                        backgroundColor = state.backgroundColor,
+                        autoSaveCrop = state.autoSaveCrop,
+                    ),
+                )
+                if (originalImageFileName != null && originalImageFileName != imageFileName) {
+                    ImageStorage.delete(getApplication(), originalImageFileName!!)
+                }
+                originalImageFileName = imageFileName
+                pendingImageFileName = null
+                DuaImageWidget().update(getApplication(), appWidgetId)
+            }
+        }
     }
 
     override fun onCleared() {
+        autoSaveJob?.cancel()
         pendingImageFileName?.let { ImageStorage.delete(getApplication(), it) }
     }
 
@@ -160,5 +256,9 @@ class WidgetConfigurationViewModel(
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return WidgetConfigurationViewModel(application, appWidgetId) as T
         }
+    }
+
+    private companion object {
+        const val AUTO_SAVE_DEBOUNCE_MILLIS = 350L
     }
 }

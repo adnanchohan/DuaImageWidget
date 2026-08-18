@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
+import androidx.activity.addCallback
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -36,6 +37,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -54,11 +56,14 @@ import androidx.lifecycle.lifecycleScope
 import com.watchfulai.duaimagewidget.data.CropMode
 import com.watchfulai.duaimagewidget.data.CropTransform
 import com.watchfulai.duaimagewidget.image.CropMath
+import com.watchfulai.duaimagewidget.MainActivity
 import com.watchfulai.duaimagewidget.ui.theme.DuaImageWidgetTheme
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 class WidgetConfigurationActivity : ComponentActivity() {
+    private var isLeaving = false
+
     private val appWidgetId: Int by lazy {
         intent?.getIntExtra(
             AppWidgetManager.EXTRA_APPWIDGET_ID,
@@ -84,6 +89,9 @@ class WidgetConfigurationActivity : ComponentActivity() {
             RESULT_CANCELED,
             Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId),
         )
+        onBackPressedDispatcher.addCallback(this) {
+            leaveToHomeAfterAutoSave(RESULT_CANCELED)
+        }
         enableEdgeToEdge()
         val widgetSize = currentWidgetSize(appWidgetId)
 
@@ -97,8 +105,10 @@ class WidgetConfigurationActivity : ComponentActivity() {
                     onCropModeChanged = editorViewModel::setCropMode,
                     onCropTransformChanged = editorViewModel::setCropTransform,
                     onResetCrop = editorViewModel::resetCrop,
+                    onAutoSaveCropChanged = editorViewModel::setAutoSaveCrop,
                     onDismissError = editorViewModel::dismissError,
-                    onCancel = ::finish,
+                    onCancel = { leaveToHomeAfterAutoSave(RESULT_CANCELED) },
+                    onOpenMainActivity = ::openMainActivityAfterAutoSave,
                     onSave = {
                         lifecycleScope.launch {
                             if (editorViewModel.save()) finishSuccessfully()
@@ -110,11 +120,60 @@ class WidgetConfigurationActivity : ComponentActivity() {
     }
 
     private fun finishSuccessfully() {
+        isLeaving = true
+        finishToHome(RESULT_OK)
+    }
+
+    private fun leaveToHomeAfterAutoSave(resultCode: Int) {
+        if (isLeaving) return
+        isLeaving = true
+        setWidgetResult(resultCode)
+        openLauncher()
+        lifecycleScope.launch {
+            editorViewModel.flushAutoSave()
+            finish()
+        }
+    }
+
+    private fun finishToHome(resultCode: Int) {
+        setWidgetResult(resultCode)
+        openLauncher()
+        finish()
+    }
+
+    private fun setWidgetResult(resultCode: Int) {
         setResult(
-            RESULT_OK,
+            resultCode,
             Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId),
         )
-        finish()
+    }
+
+    private fun openLauncher() {
+        startActivity(
+            Intent(Intent.ACTION_MAIN)
+                .addCategory(Intent.CATEGORY_HOME)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+    }
+
+    private fun openMainActivityAfterAutoSave() {
+        if (isLeaving) return
+        isLeaving = true
+        openMainActivity()
+        lifecycleScope.launch {
+            editorViewModel.flushAutoSave()
+            finish()
+        }
+    }
+
+    private fun openMainActivity() {
+        startActivity(
+            Intent(this, MainActivity::class.java).addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP,
+            ),
+        )
     }
 
     private fun currentWidgetSize(id: Int): WidgetSizeDp {
@@ -138,8 +197,10 @@ private fun WidgetConfigurationScreen(
     onCropModeChanged: (CropMode) -> Unit,
     onCropTransformChanged: (CropTransform) -> Unit,
     onResetCrop: () -> Unit,
+    onAutoSaveCropChanged: (Boolean) -> Unit,
     onDismissError: () -> Unit,
     onCancel: () -> Unit,
+    onOpenMainActivity: () -> Unit,
     onSave: () -> Unit,
 ) {
     val picker = rememberLauncherForActivityResult(
@@ -225,6 +286,39 @@ private fun WidgetConfigurationScreen(
                     }
 
                     Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                MaterialTheme.colorScheme.surfaceVariant,
+                                RoundedCornerShape(16.dp),
+                            )
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text("Auto-save crop", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                text = if (state.hasPersistedConfiguration) {
+                                    "Apply crop, zoom, position, and image changes to this widget automatically."
+                                } else {
+                                    "Turn it on now; auto-save starts after this widget is saved once."
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Switch(
+                            checked = state.autoSaveCrop,
+                            onCheckedChange = onAutoSaveCropChanged,
+                            enabled = !state.isSaving && !state.isImporting,
+                        )
+                    }
+
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
@@ -283,7 +377,20 @@ private fun WidgetConfigurationScreen(
                     )
                     Spacer(Modifier.size(10.dp))
                 }
-                Text(if (state.isSaving) "Saving…" else "Save widget")
+                Text(
+                    when {
+                        state.isSaving -> "Saving…"
+                        state.autoSaveCrop && state.hasPersistedConfiguration -> "Done"
+                        else -> "Save widget"
+                    },
+                )
+            }
+            OutlinedButton(
+                onClick = onOpenMainActivity,
+                enabled = !state.isSaving && !state.isImporting,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Open app / add another widget")
             }
             Spacer(Modifier.height(12.dp))
         }

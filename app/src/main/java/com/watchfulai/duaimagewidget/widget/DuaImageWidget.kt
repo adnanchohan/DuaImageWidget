@@ -108,7 +108,7 @@ private fun WidgetContent(
         action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
         putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
         putWidgetSize(widgetSize)
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
     }
     val baseModifier = GlanceModifier
         .fillMaxSize()

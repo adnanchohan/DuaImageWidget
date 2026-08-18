@@ -65,7 +65,7 @@ class MainActivity : ComponentActivity() {
         if (!manager.isRequestPinAppWidgetSupported) return false
         val configureIntent = Intent(this, com.watchfulai.duaimagewidget.ui.configuration.WidgetConfigurationActivity::class.java).apply {
             action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
         val pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT or
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0

@@ -1,6 +1,7 @@
 package com.watchfulai.duaimagewidget.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -41,6 +42,7 @@ class WidgetConfigRepository(context: Context) {
             ),
             backgroundColor = this[Keys.background(appWidgetId)]
                 ?: DEFAULT_WIDGET_BACKGROUND,
+            autoSaveCrop = this[Keys.autoSaveCrop(appWidgetId)] ?: false,
         )
     }
 
@@ -52,6 +54,7 @@ class WidgetConfigRepository(context: Context) {
             preferences[Keys.focalY(config.appWidgetId)] = config.cropTransform.focalY
             preferences[Keys.zoom(config.appWidgetId)] = config.cropTransform.zoom
             preferences[Keys.background(config.appWidgetId)] = config.backgroundColor
+            preferences[Keys.autoSaveCrop(config.appWidgetId)] = config.autoSaveCrop
         }
     }
 
@@ -64,6 +67,7 @@ class WidgetConfigRepository(context: Context) {
             preferences.remove(Keys.focalY(appWidgetId))
             preferences.remove(Keys.zoom(appWidgetId))
             preferences.remove(Keys.background(appWidgetId))
+            preferences.remove(Keys.autoSaveCrop(appWidgetId))
         }
         return existing
     }
@@ -75,5 +79,6 @@ class WidgetConfigRepository(context: Context) {
         fun focalY(id: Int) = floatPreferencesKey("widget_${id}_focal_y")
         fun zoom(id: Int) = floatPreferencesKey("widget_${id}_zoom")
         fun background(id: Int) = intPreferencesKey("widget_${id}_background")
+        fun autoSaveCrop(id: Int) = booleanPreferencesKey("widget_${id}_auto_save_crop")
     }
 }

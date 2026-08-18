@@ -13,7 +13,9 @@
         android:theme="@style/Theme.DuaImageWidget">
         <activity
             android:name=".ui.configuration.WidgetConfigurationActivity"
+            android:excludeFromRecents="true"
             android:exported="true"
+            android:taskAffinity="com.watchfulai.duaimagewidget.widget_configuration"
             android:theme="@style/Theme.DuaImageWidget"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
