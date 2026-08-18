@@ -37,10 +37,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.watchfulai.duaimagewidget.data.AppSettings
 import com.watchfulai.duaimagewidget.data.AppSettingsRepository
 import com.watchfulai.duaimagewidget.ui.components.BrandMark
@@ -129,10 +135,10 @@ private fun HomeScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     DuaPrimaryButton(
-                        text = "Add to home screen",
+                        text = "Add widget to home screen",
                         onClick = onAddWidget,
                         modifier = Modifier.fillMaxWidth(),
-                        leading = {
+                        /*leading = {
                             Icon(
                                 painter = painterResource(R.drawable.ic_add),
                                 contentDescription = null,
@@ -140,10 +146,10 @@ private fun HomeScreen(
                                     .padding(end = 10.dp)
                                     .size(20.dp),
                             )
-                        },
+                        },*/
                     )
                     Text(
-                        text = "Private by design · no gallery permission",
+                        text = "WatchFulAI Apps",
                         modifier = Modifier.padding(top = 9.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.labelSmall,
@@ -164,40 +170,50 @@ private fun HomeScreen(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    BrandMark(size = 44.dp)
-                    Column {
-                        Text("Dua", style = MaterialTheme.typography.titleLarge)
-                        Text(
-                            "IMAGE WIDGET",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    }
+                    DuaPill(text = "A quiet reminder, always close")
+                    Text(
+                        text = buildAnnotatedString {
+                            append("Your ")
+                            withStyle(
+                                SpanStyle(
+                                    brush = Brush.linearGradient(
+                                        colors = listOf(
+                                            Color(0xFF8C6514),
+                                            Color(0xFFFFE082),
+                                            Color(0xFFD4AF37),
+                                            Color(0xFFFFF1A8),
+                                            Color(0xFF9B741A),
+                                        ),
+                                    ),
+                                    fontSize = 40.sp,
+                                    fontWeight = FontWeight.Black,
+                                ),
+                            ) {
+                                append("دعاء")
+                            }
+                            append(",\none glance away.")
+                        },
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                    Text(
+                        text = "Turn any dua image into a beautiful, perfectly framed home-screen widget.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
                 DuaIconButton(
                     icon = R.drawable.ic_settings,
                     contentDescription = "Open settings",
                     onClick = onSettings,
-                )
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                DuaPill(text = "A quiet reminder, always close")
-                Text(
-                    text = "Your dua,\none glance away.",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-                Text(
-                    text = "Turn any dua image into a beautiful, perfectly framed home-screen widget.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -241,34 +257,34 @@ private fun HomeScreen(
                 }
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        MaterialTheme.colorScheme.surfaceVariant,
-                        RoundedCornerShape(22.dp),
-                    )
-                    .padding(18.dp),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surface) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_shield),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(11.dp),
-                    )
-                }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Your images stay yours", style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        "Everything is stored only on this device.",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .background(
+//                        MaterialTheme.colorScheme.surfaceVariant,
+//                        RoundedCornerShape(22.dp),
+//                    )
+//                    .padding(18.dp),
+//                horizontalArrangement = Arrangement.spacedBy(14.dp),
+//                verticalAlignment = Alignment.CenterVertically,
+//            ) {
+//                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surface) {
+//                    Icon(
+//                        painter = painterResource(R.drawable.ic_shield),
+//                        contentDescription = null,
+//                        tint = MaterialTheme.colorScheme.primary,
+//                        modifier = Modifier.padding(11.dp),
+//                    )
+//                }
+//                Column(modifier = Modifier.weight(1f)) {
+//                    Text("Your images stay yours", style = MaterialTheme.typography.titleMedium)
+//                    Text(
+//                        "Everything is stored only on this device.",
+//                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+//                        style = MaterialTheme.typography.bodySmall,
+//                    )
+//                }
+//            }
         }
     }
 }
