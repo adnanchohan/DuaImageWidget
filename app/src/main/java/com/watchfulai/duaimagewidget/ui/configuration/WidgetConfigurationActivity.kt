@@ -1,6 +1,7 @@
 package com.watchfulai.duaimagewidget.ui.configuration
 
 import android.appwidget.AppWidgetManager
+import android.content.res.Configuration
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -14,17 +15,19 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -82,14 +85,14 @@ class WidgetConfigurationActivity : ComponentActivity() {
             Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId),
         )
         enableEdgeToEdge()
-        val aspectRatio = currentWidgetAspectRatio(appWidgetId)
+        val widgetSize = currentWidgetSize(appWidgetId)
 
         setContent {
             DuaImageWidgetTheme(dynamicColor = false) {
                 val state by editorViewModel.uiState.collectAsState()
                 WidgetConfigurationScreen(
                     state = state,
-                    widgetAspectRatio = aspectRatio,
+                    widgetSize = widgetSize,
                     onChooseImage = editorViewModel::importImage,
                     onCropModeChanged = editorViewModel::setCropMode,
                     onCropTransformChanged = editorViewModel::setCropTransform,
@@ -114,19 +117,23 @@ class WidgetConfigurationActivity : ComponentActivity() {
         finish()
     }
 
-    private fun currentWidgetAspectRatio(id: Int): Float {
+    private fun currentWidgetSize(id: Int): WidgetSizeDp {
         val options = AppWidgetManager.getInstance(this).getAppWidgetOptions(id)
-        val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 280)
-        val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 140)
-        if (width <= 0 || height <= 0) return 2f
-        return (width.toFloat() / height).coerceIn(0.75f, 5f)
+        return resolveWidgetSize(
+            exactSize = intent.widgetSizeOrNull(),
+            minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH),
+            minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT),
+            maxWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH),
+            maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT),
+            isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE,
+        )
     }
 }
 
 @Composable
 private fun WidgetConfigurationScreen(
     state: WidgetEditorUiState,
-    widgetAspectRatio: Float,
+    widgetSize: WidgetSizeDp,
     onChooseImage: (android.net.Uri) -> Unit,
     onCropModeChanged: (CropMode) -> Unit,
     onCropTransformChanged: (CropTransform) -> Unit,
@@ -180,7 +187,7 @@ private fun WidgetConfigurationScreen(
                 else -> {
                     CropPreview(
                         bitmap = state.bitmap,
-                        aspectRatio = widgetAspectRatio,
+                        widgetSize = widgetSize,
                         cropMode = state.cropMode,
                         transform = state.cropTransform,
                         backgroundColor = state.backgroundColor,
@@ -336,7 +343,7 @@ private fun ChoiceButton(
 @Composable
 private fun CropPreview(
     bitmap: Bitmap,
-    aspectRatio: Float,
+    widgetSize: WidgetSizeDp,
     cropMode: CropMode,
     transform: CropTransform,
     backgroundColor: Int,
@@ -344,53 +351,66 @@ private fun CropPreview(
 ) {
     val image = remember(bitmap) { bitmap.asImageBitmap() }
     val frameShape = RoundedCornerShape(18.dp)
-    Canvas(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(aspectRatio)
-            .clip(frameShape)
-            .background(Color(backgroundColor))
-            .border(2.dp, MaterialTheme.colorScheme.primary, frameShape)
-            .pointerInput(bitmap, cropMode, transform) {
-                if (cropMode == CropMode.FILL) {
-                    detectTransformGestures { _, pan, zoom, _ ->
-                        onTransformChanged(
-                            CropMath.transformed(
-                                current = transform,
-                                panX = pan.x,
-                                panY = pan.y,
-                                zoomChange = zoom,
-                                sourceWidth = bitmap.width,
-                                sourceHeight = bitmap.height,
-                                targetWidth = size.width,
-                                targetHeight = size.height,
-                            ),
-                        )
-                    }
-                }
-            },
-    ) {
-        val geometry = CropMath.geometry(
-            sourceWidth = bitmap.width,
-            sourceHeight = bitmap.height,
-            targetWidth = size.width.roundToInt(),
-            targetHeight = size.height.roundToInt(),
-            mode = cropMode,
-            transform = transform,
-        )
-        drawImage(
-            image = image,
-            srcOffset = androidx.compose.ui.unit.IntOffset.Zero,
-            srcSize = androidx.compose.ui.unit.IntSize(bitmap.width, bitmap.height),
-            dstOffset = androidx.compose.ui.unit.IntOffset(
-                geometry.left.roundToInt(),
-                geometry.top.roundToInt(),
-            ),
-            dstSize = androidx.compose.ui.unit.IntSize(
-                geometry.width.roundToInt(),
-                geometry.height.roundToInt(),
-            ),
-            filterQuality = FilterQuality.High,
-        )
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val previewWidth = widgetSize.width.dp
+        val previewHeight = widgetSize.height.dp
+        val centeringSpace = ((maxWidth - previewWidth) / 2).coerceAtLeast(0.dp)
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = centeringSpace),
+        ) {
+            Canvas(
+                modifier = Modifier
+                    .width(previewWidth)
+                    .height(previewHeight)
+                    .clip(frameShape)
+                    .background(Color(backgroundColor))
+                    .border(2.dp, MaterialTheme.colorScheme.primary, frameShape)
+                    .pointerInput(bitmap, cropMode, transform) {
+                        if (cropMode == CropMode.FILL) {
+                            detectTransformGestures { _, pan, zoom, _ ->
+                                onTransformChanged(
+                                    CropMath.transformed(
+                                        current = transform,
+                                        panX = pan.x,
+                                        panY = pan.y,
+                                        zoomChange = zoom,
+                                        sourceWidth = bitmap.width,
+                                        sourceHeight = bitmap.height,
+                                        targetWidth = size.width,
+                                        targetHeight = size.height,
+                                    ),
+                                )
+                            }
+                        }
+                    },
+            ) {
+                val geometry = CropMath.geometry(
+                    sourceWidth = bitmap.width,
+                    sourceHeight = bitmap.height,
+                    targetWidth = size.width.roundToInt(),
+                    targetHeight = size.height.roundToInt(),
+                    mode = cropMode,
+                    transform = transform,
+                )
+                drawImage(
+                    image = image,
+                    srcOffset = androidx.compose.ui.unit.IntOffset.Zero,
+                    srcSize = androidx.compose.ui.unit.IntSize(bitmap.width, bitmap.height),
+                    dstOffset = androidx.compose.ui.unit.IntOffset(
+                        geometry.left.roundToInt(),
+                        geometry.top.roundToInt(),
+                    ),
+                    dstSize = androidx.compose.ui.unit.IntSize(
+                        geometry.width.roundToInt(),
+                        geometry.height.roundToInt(),
+                    ),
+                    filterQuality = FilterQuality.High,
+                )
+            }
+        }
     }
 }

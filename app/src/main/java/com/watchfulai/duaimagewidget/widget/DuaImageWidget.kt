@@ -32,7 +32,9 @@ import com.watchfulai.duaimagewidget.R
 import com.watchfulai.duaimagewidget.data.WidgetConfigRepository
 import com.watchfulai.duaimagewidget.image.ImageStorage
 import com.watchfulai.duaimagewidget.image.WidgetBitmapRenderer
+import com.watchfulai.duaimagewidget.ui.configuration.WidgetSizeDp
 import com.watchfulai.duaimagewidget.ui.configuration.WidgetConfigurationActivity
+import com.watchfulai.duaimagewidget.ui.configuration.putWidgetSize
 import kotlin.math.roundToInt
 
 class DuaImageWidget : GlanceAppWidget() {
@@ -75,6 +77,10 @@ class DuaImageWidget : GlanceAppWidget() {
             WidgetContent(
                 context = localContext,
                 appWidgetId = appWidgetId,
+                widgetSize = WidgetSizeDp(
+                    width = size.width.value,
+                    height = size.height.value,
+                ),
                 renderedImage = rendered,
             )
         }
@@ -95,11 +101,13 @@ class DuaImageWidget : GlanceAppWidget() {
 private fun WidgetContent(
     context: Context,
     appWidgetId: Int,
+    widgetSize: WidgetSizeDp,
     renderedImage: android.graphics.Bitmap?,
 ) {
     val configureIntent = Intent(context, WidgetConfigurationActivity::class.java).apply {
         action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
         putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        putWidgetSize(widgetSize)
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
     }
     val baseModifier = GlanceModifier
