@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Dua Image Widget</string>
+    <string name="widget_description">Keep a selected dua image on your home screen</string>
+    <string name="widget_loading">Loading dua…</string>
+    <string name="widget_choose_image">Tap to choose a dua image</string>
+    <string name="widget_image_description">Selected dua image</string>
+    <string name="widget_preview_text">Your dua</string>
+</resources>
