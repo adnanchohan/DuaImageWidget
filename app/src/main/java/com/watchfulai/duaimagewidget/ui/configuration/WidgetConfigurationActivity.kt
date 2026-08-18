@@ -1,21 +1,26 @@
 package com.watchfulai.duaimagewidget.ui.configuration
 
 import android.appwidget.AppWidgetManager
-import android.content.res.Configuration
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.os.Bundle
-import androidx.activity.addCallback
 import androidx.activity.ComponentActivity
+import androidx.activity.addCallback
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,39 +35,55 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.watchfulai.duaimagewidget.MainActivity
+import com.watchfulai.duaimagewidget.R
+import com.watchfulai.duaimagewidget.data.AppSettings
+import com.watchfulai.duaimagewidget.data.AppSettingsRepository
 import com.watchfulai.duaimagewidget.data.CropMode
 import com.watchfulai.duaimagewidget.data.CropTransform
 import com.watchfulai.duaimagewidget.image.CropMath
-import com.watchfulai.duaimagewidget.MainActivity
+import com.watchfulai.duaimagewidget.ui.components.DuaIconButton
+import com.watchfulai.duaimagewidget.ui.components.DuaPrimaryButton
+import com.watchfulai.duaimagewidget.ui.components.DuaSurfaceCard
 import com.watchfulai.duaimagewidget.ui.theme.DuaImageWidgetTheme
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 class WidgetConfigurationActivity : ComponentActivity() {
     private var isLeaving = false
+    private val appSettingsRepository by lazy { AppSettingsRepository(applicationContext) }
 
     private val appWidgetId: Int by lazy {
         intent?.getIntExtra(
@@ -96,7 +117,8 @@ class WidgetConfigurationActivity : ComponentActivity() {
         val widgetSize = currentWidgetSize(appWidgetId)
 
         setContent {
-            DuaImageWidgetTheme(dynamicColor = false) {
+            val appSettings by appSettingsRepository.settings.collectAsState(initial = AppSettings())
+            DuaImageWidgetTheme(appTheme = appSettings.theme) {
                 val state by editorViewModel.uiState.collectAsState()
                 WidgetConfigurationScreen(
                     state = state,
@@ -207,137 +229,267 @@ private fun WidgetConfigurationScreen(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri -> uri?.let(onChooseImage) },
     )
+    val chooseImage = {
+        picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+    }
+    val screenScrollState = rememberScrollState()
+    var cropGestureActive by remember { mutableStateOf(false) }
+    val currentCellSize = remember(widgetSize) { widgetSize.toWidgetCellSize() }
+    val availableCellSizes = remember(currentCellSize) {
+        availableWidgetCellSizes(currentCellSize)
+    }
+    var selectedCellSize by remember(currentCellSize) { mutableStateOf(currentCellSize) }
+    val previewWidgetSize = remember(widgetSize, currentCellSize, selectedCellSize) {
+        if (selectedCellSize == currentCellSize) {
+            widgetSize
+        } else {
+            selectedCellSize.toPreviewSizeDp()
+        }
+    }
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { contentPadding ->
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            Surface(color = MaterialTheme.colorScheme.background) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .padding(top = 12.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    DuaPrimaryButton(
+                        text = when {
+                            state.isSaving -> "Saving…"
+                            state.autoSaveCrop && state.hasPersistedConfiguration -> "Done"
+                            else -> "Save widget"
+                        },
+                        onClick = onSave,
+                        enabled = state.bitmap != null && !state.isSaving && !state.isImporting,
+                        modifier = Modifier.fillMaxWidth(),
+                        leading = if (state.isSaving) {
+                            {
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .padding(end = 10.dp)
+                                        .size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                    )
+                    OutlinedButton(
+                        onClick = onOpenMainActivity,
+                        enabled = !state.isSaving && !state.isImporting,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(16.dp),
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_home),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.width(9.dp))
+                        Text("Open app · add another widget")
+                    }
+                }
+            }
+        },
+    ) { contentPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(contentPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .verticalScroll(screenScrollState, enabled = !cropGestureActive)
+                .padding(horizontal = 20.dp)
+                .padding(top = 18.dp, bottom = 26.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                DuaIconButton(
+                    icon = R.drawable.ic_arrow_back,
+                    contentDescription = "Cancel and return home",
+                    onClick = onCancel,
+                )
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Set your dua image", style = MaterialTheme.typography.headlineSmall)
+                    Text("Frame your dua", style = MaterialTheme.typography.headlineSmall)
                     Text(
-                        "Preview and position it for this widget.",
-                        style = MaterialTheme.typography.bodyMedium,
+                        if (selectedCellSize == currentCellSize) {
+                            "Previewing the exact current home-screen size."
+                        } else {
+                            "Previewing the ${selectedCellSize.label} target size."
+                        },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
                     )
-                }
-                OutlinedButton(onClick = onCancel, enabled = !state.isSaving) {
-                    Text("Cancel")
                 }
             }
 
-            when {
-                state.isLoading -> LoadingPanel("Loading widget…")
-                state.isImporting -> LoadingPanel("Preparing image…")
-                state.bitmap == null -> EmptyImagePanel(
-                    onChoose = {
-                        picker.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
-                        )
-                    },
-                )
-                else -> {
-                    CropPreview(
-                        bitmap = state.bitmap,
-                        widgetSize = widgetSize,
-                        cropMode = state.cropMode,
-                        transform = state.cropTransform,
-                        backgroundColor = state.backgroundColor,
-                        onTransformChanged = onCropTransformChanged,
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("Live preview", style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        if (selectedCellSize == currentCellSize) {
+                            "Current home size"
+                        } else {
+                            "Selected ${selectedCellSize.label}"
+                        },
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall,
                     )
+                }
+                WidgetSizeStrip(
+                    sizes = availableCellSizes,
+                    current = currentCellSize,
+                    selected = selectedCellSize,
+                    onSelected = { selectedCellSize = it },
+                )
+            }
 
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Image display", style = MaterialTheme.typography.titleMedium)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            ChoiceButton(
-                                label = "Fit",
-                                selected = state.cropMode == CropMode.FIT,
-                                modifier = Modifier.weight(1f),
-                                onClick = { onCropModeChanged(CropMode.FIT) },
-                            )
-                            ChoiceButton(
-                                label = "Fill & crop",
-                                selected = state.cropMode == CropMode.FILL,
-                                modifier = Modifier.weight(1f),
-                                onClick = { onCropModeChanged(CropMode.FILL) },
-                            )
-                        }
-                        Text(
-                            if (state.cropMode == CropMode.FIT) {
-                                "Fit keeps every line visible. Empty space uses a soft background."
-                            } else {
-                                "Drag to reposition and pinch to zoom. Keep all important text inside the frame."
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+            if (selectedCellSize != currentCellSize) {
+                ResizeInstruction(
+                    target = selectedCellSize,
+                    onReturnHome = onCancel,
+                    canReturnHome = state.hasPersistedConfiguration,
+                )
+            }
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                MaterialTheme.colorScheme.surfaceVariant,
-                                RoundedCornerShape(16.dp),
-                            )
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+            when {
+                state.isLoading -> LoadingPanel("Loading your widget…")
+                state.isImporting -> LoadingPanel("Preparing your image…")
+                state.bitmap == null -> EmptyImagePanel(onChoose = chooseImage)
+                else -> {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(28.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                     ) {
                         Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.padding(vertical = 22.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Text("Auto-save crop", style = MaterialTheme.typography.titleMedium)
+                            CropPreview(
+                                bitmap = state.bitmap,
+                                widgetSize = previewWidgetSize,
+                                cropMode = state.cropMode,
+                                transform = state.cropTransform,
+                                backgroundColor = state.backgroundColor,
+                                onTransformChanged = onCropTransformChanged,
+                                onGestureActiveChanged = { cropGestureActive = it },
+                            )
+                            if (state.cropMode == CropMode.FILL) {
+                                Text(
+                                    "Drag to position · pinch to zoom",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                        }
+                    }
+
+                    DuaSurfaceCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp),
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_crop),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                                Text("Image display", style = MaterialTheme.typography.titleMedium)
+                            }
+                            CropModeSelector(
+                                selected = state.cropMode,
+                                onSelected = onCropModeChanged,
+                            )
                             Text(
-                                text = if (state.hasPersistedConfiguration) {
-                                    "Apply crop, zoom, position, and image changes to this widget automatically."
+                                if (state.cropMode == CropMode.FIT) {
+                                    "Fit protects every line and uses your chosen background around the image."
                                 } else {
-                                    "Turn it on now; auto-save starts after this widget is saved once."
+                                    "Fill uses the whole frame. Keep important text inside the rounded preview."
                                 },
-                                style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodySmall,
                             )
                         }
-                        Switch(
-                            checked = state.autoSaveCrop,
-                            onCheckedChange = onAutoSaveCropChanged,
-                            enabled = !state.isSaving && !state.isImporting,
-                        )
+                    }
+
+                    DuaSurfaceCard(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.padding(18.dp),
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_image),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(10.dp),
+                                )
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Auto-save edits", style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    if (state.hasPersistedConfiguration) {
+                                        "Apply image, crop, zoom and position changes automatically."
+                                    } else {
+                                        "Auto-save starts after this widget is saved once."
+                                    },
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                            Switch(
+                                checked = state.autoSaveCrop,
+                                onCheckedChange = onAutoSaveCropChanged,
+                                enabled = !state.isSaving && !state.isImporting,
+                            )
+                        }
                     }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         OutlinedButton(
-                            onClick = {
-                                picker.launch(
-                                    PickVisualMediaRequest(
-                                        ActivityResultContracts.PickVisualMedia.ImageOnly,
-                                    ),
-                                )
-                            },
-                            modifier = Modifier.weight(1f),
+                            onClick = chooseImage,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp),
+                            shape = RoundedCornerShape(16.dp),
                         ) {
                             Text("Change image")
                         }
                         OutlinedButton(
                             onClick = onResetCrop,
                             enabled = state.cropMode == CropMode.FILL,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp),
+                            shape = RoundedCornerShape(16.dp),
                         ) {
                             Text("Reset crop")
                         }
@@ -346,104 +498,245 @@ private fun WidgetConfigurationScreen(
             }
 
             state.errorMessage?.let { message ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            MaterialTheme.colorScheme.errorContainer,
-                            RoundedCornerShape(12.dp),
-                        )
-                        .padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    color = MaterialTheme.colorScheme.errorContainer,
                 ) {
-                    Text(
-                        text = message,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    OutlinedButton(onClick = onDismissError) { Text("Dismiss") }
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(
+                            text = message,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Text(
+                            text = "Dismiss",
+                            modifier = Modifier.clickable(onClick = onDismissError),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
                 }
             }
+        }
+    }
+}
 
-            Button(
-                onClick = onSave,
-                enabled = state.bitmap != null && !state.isSaving && !state.isImporting,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                if (state.isSaving) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp,
-                    )
-                    Spacer(Modifier.size(10.dp))
-                }
-                Text(
-                    when {
-                        state.isSaving -> "Saving…"
-                        state.autoSaveCrop && state.hasPersistedConfiguration -> "Done"
-                        else -> "Save widget"
+@Composable
+private fun WidgetSizeStrip(
+    sizes: List<WidgetCellSize>,
+    current: WidgetCellSize,
+    selected: WidgetCellSize,
+    onSelected: (WidgetCellSize) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        sizes.forEach { size ->
+            val isSelected = size == selected
+            val isCurrent = size == current
+            Surface(
+                modifier = Modifier.clickable { onSelected(size) },
+                shape = CircleShape,
+                color = when {
+                    isSelected -> MaterialTheme.colorScheme.primary
+                    isCurrent -> MaterialTheme.colorScheme.primaryContainer
+                    else -> MaterialTheme.colorScheme.surface
+                },
+                border = BorderStroke(
+                    1.dp,
+                    if (isSelected || isCurrent) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.outlineVariant
                     },
+                ),
+            ) {
+                Text(
+                    text = if (isCurrent) "${size.label} · current" else size.label,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+                    color = if (isSelected) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else if (isCurrent) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = if (isSelected || isCurrent) FontWeight.Bold else FontWeight.Medium,
                 )
             }
-            OutlinedButton(
-                onClick = onOpenMainActivity,
-                enabled = !state.isSaving && !state.isImporting,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Open app / add another widget")
+        }
+    }
+}
+
+@Composable
+private fun ResizeInstruction(
+    target: WidgetCellSize,
+    onReturnHome: () -> Unit,
+    canReturnHome: Boolean,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.primaryContainer,
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(13.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surface) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_home),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(10.dp),
+                )
             }
-            Spacer(Modifier.height(12.dp))
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
+                Text(
+                    "Previewing ${target.label}",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                Text(
+                    if (canReturnHome) {
+                        "Return home and long-press the widget to resize to ${target.label}."
+                    } else {
+                        "Save this widget first. Then return home and long-press it to resize to ${target.label}."
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+            if (canReturnHome) {
+                Text(
+                    text = "Home",
+                    modifier = Modifier.clickable(onClick = onReturnHome),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun LoadingPanel(label: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(220.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    DuaSurfaceCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(230.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             CircularProgressIndicator()
-            Spacer(Modifier.height(12.dp))
-            Text(label)
+            Spacer(Modifier.height(14.dp))
+            Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
 @Composable
 private fun EmptyImagePanel(onChoose: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(20.dp))
-            .padding(horizontal = 24.dp, vertical = 40.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    DuaSurfaceCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
     ) {
-        Text("Choose a dua image to begin.", style = MaterialTheme.typography.titleMedium)
-        Text(
-            "Your image is copied into private app storage so the widget keeps working.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Button(onClick = onChoose) { Text("Choose image") }
+        Column(
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 36.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surface) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_image),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .size(28.dp),
+                )
+            }
+            Text(
+                "Choose your dua image",
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                "Select any small dua image. It is copied to private storage so your widget remains reliable.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+            DuaPrimaryButton(
+                text = "Choose image",
+                onClick = onChoose,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }
 
 @Composable
-private fun ChoiceButton(
+private fun CropModeSelector(
+    selected: CropMode,
+    onSelected: (CropMode) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        CropModeOption(
+            label = "Fit",
+            selected = selected == CropMode.FIT,
+            modifier = Modifier.weight(1f),
+            onClick = { onSelected(CropMode.FIT) },
+        )
+        CropModeOption(
+            label = "Fill & crop",
+            selected = selected == CropMode.FILL,
+            modifier = Modifier.weight(1f),
+            onClick = { onSelected(CropMode.FILL) },
+        )
+    }
+}
+
+@Composable
+private fun CropModeOption(
     label: String,
     selected: Boolean,
     modifier: Modifier,
     onClick: () -> Unit,
 ) {
-    if (selected) {
-        Button(onClick = onClick, modifier = modifier) { Text(label) }
-    } else {
-        OutlinedButton(onClick = onClick, modifier = modifier) { Text(label) }
+    Surface(
+        modifier = modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        color = if (selected) MaterialTheme.colorScheme.surface else Color.Transparent,
+        shadowElevation = if (selected) 1.dp else 0.dp,
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 11.dp),
+            textAlign = TextAlign.Center,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+        )
     }
 }
 
@@ -455,8 +748,12 @@ private fun CropPreview(
     transform: CropTransform,
     backgroundColor: Int,
     onTransformChanged: (CropTransform) -> Unit,
+    onGestureActiveChanged: (Boolean) -> Unit,
 ) {
     val image = remember(bitmap) { bitmap.asImageBitmap() }
+    val latestTransform by rememberUpdatedState(transform)
+    val latestOnTransformChanged by rememberUpdatedState(onTransformChanged)
+    val latestOnGestureActiveChanged by rememberUpdatedState(onGestureActiveChanged)
     val frameShape = RoundedCornerShape(18.dp)
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val previewWidth = widgetSize.width.dp
@@ -476,21 +773,38 @@ private fun CropPreview(
                     .clip(frameShape)
                     .background(Color(backgroundColor))
                     .border(2.dp, MaterialTheme.colorScheme.primary, frameShape)
-                    .pointerInput(bitmap, cropMode, transform) {
+                    .pointerInput(bitmap, cropMode) {
                         if (cropMode == CropMode.FILL) {
-                            detectTransformGestures { _, pan, zoom, _ ->
-                                onTransformChanged(
-                                    CropMath.transformed(
-                                        current = transform,
-                                        panX = pan.x,
-                                        panY = pan.y,
-                                        zoomChange = zoom,
-                                        sourceWidth = bitmap.width,
-                                        sourceHeight = bitmap.height,
-                                        targetWidth = size.width,
-                                        targetHeight = size.height,
-                                    ),
+                            awaitEachGesture {
+                                awaitFirstDown(
+                                    requireUnconsumed = false,
+                                    pass = PointerEventPass.Initial,
                                 )
+                                latestOnGestureActiveChanged(true)
+                                var gestureTransform = latestTransform
+                                try {
+                                    do {
+                                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                                        val pan = event.calculatePan()
+                                        val zoom = event.calculateZoom()
+                                        if (pan.x != 0f || pan.y != 0f || zoom != 1f) {
+                                            event.changes.forEach { it.consume() }
+                                            gestureTransform = CropMath.transformed(
+                                                current = gestureTransform,
+                                                panX = pan.x,
+                                                panY = pan.y,
+                                                zoomChange = zoom,
+                                                sourceWidth = bitmap.width,
+                                                sourceHeight = bitmap.height,
+                                                targetWidth = size.width,
+                                                targetHeight = size.height,
+                                            )
+                                            latestOnTransformChanged(gestureTransform)
+                                        }
+                                    } while (event.changes.any { it.pressed })
+                                } finally {
+                                    latestOnGestureActiveChanged(false)
+                                }
                             }
                         }
                     },

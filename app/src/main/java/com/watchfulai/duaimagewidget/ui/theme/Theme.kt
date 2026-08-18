@@ -1,58 +1,84 @@
 package com.watchfulai.duaimagewidget.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import com.watchfulai.duaimagewidget.data.AppTheme
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = Emerald300,
+    onPrimary = Emerald950,
+    primaryContainer = Emerald800,
+    onPrimaryContainer = Emerald100,
+    secondary = Gold300,
+    onSecondary = Ink950,
+    secondaryContainer = Emerald900,
+    onSecondaryContainer = Emerald100,
+    tertiary = Emerald200,
+    onTertiary = Emerald950,
+    background = DarkBackground,
+    onBackground = Ivory50,
+    surface = DarkSurface,
+    onSurface = Ivory50,
+    surfaceVariant = DarkSurfaceRaised,
+    onSurfaceVariant = Emerald200,
+    outline = Emerald600,
+    outlineVariant = Emerald900,
+    error = Color(0xFFFFB4AB),
+    errorContainer = Color(0xFF93000A),
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+    primary = Emerald700,
     onPrimary = Color.White,
-    onSecondary = Color.White,
+    primaryContainer = Emerald100,
+    onPrimaryContainer = Emerald950,
+    secondary = Gold500,
+    onSecondary = Ink950,
+    secondaryContainer = Color(0xFFF5E8C6),
+    onSecondaryContainer = Ink950,
+    tertiary = Emerald500,
     onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    background = Ivory100,
+    onBackground = Ink950,
+    surface = Ivory50,
+    onSurface = Ink950,
+    surfaceVariant = Emerald100,
+    onSurfaceVariant = Ink700,
+    outline = Emerald300,
+    outlineVariant = Sand200,
+    error = Color(0xFFBA1A1A),
+    errorContainer = Color(0xFFFFDAD6),
 )
 
 @Composable
 fun DuaImageWidgetTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
+    appTheme: AppTheme = AppTheme.SYSTEM,
+    content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
+    val darkTheme = when (appTheme) {
+        AppTheme.SYSTEM -> isSystemInDarkTheme()
+        AppTheme.LIGHT -> false
+        AppTheme.DARK -> true
+    }
+    val view = LocalView.current
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    if (!view.isInEditMode) {
+        (view.context as? Activity)?.window?.let { window ->
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
+        }
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
         typography = Typography,
-        content = content
+        content = content,
     )
 }

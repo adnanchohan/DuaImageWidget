@@ -20,33 +20,54 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.watchfulai.duaimagewidget.data.AppSettings
+import com.watchfulai.duaimagewidget.data.AppSettingsRepository
+import com.watchfulai.duaimagewidget.ui.components.BrandMark
+import com.watchfulai.duaimagewidget.ui.components.DuaIconButton
+import com.watchfulai.duaimagewidget.ui.components.DuaPill
+import com.watchfulai.duaimagewidget.ui.components.DuaPrimaryButton
+import com.watchfulai.duaimagewidget.ui.components.DuaSurfaceCard
+import com.watchfulai.duaimagewidget.ui.settings.SettingsActivity
 import com.watchfulai.duaimagewidget.ui.theme.DuaImageWidgetTheme
+import com.watchfulai.duaimagewidget.ui.theme.Gold300
 import com.watchfulai.duaimagewidget.widget.DuaImageWidgetReceiver
 
 class MainActivity : ComponentActivity() {
+    private val settingsRepository by lazy { AppSettingsRepository(applicationContext) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            DuaImageWidgetTheme(dynamicColor = false) {
+            val settings by settingsRepository.settings.collectAsState(initial = AppSettings())
+            DuaImageWidgetTheme(appTheme = settings.theme) {
                 var status by remember { mutableStateOf<String?>(null) }
                 HomeScreen(
                     status = status,
+                    onSettings = {
+                        startActivity(Intent(this, SettingsActivity::class.java))
+                    },
                     onAddWidget = {
                         status = if (requestWidgetPin()) {
                             "Choose a place on your home screen, then select your dua image."
@@ -63,7 +84,10 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
         val manager = AppWidgetManager.getInstance(this)
         if (!manager.isRequestPinAppWidgetSupported) return false
-        val configureIntent = Intent(this, com.watchfulai.duaimagewidget.ui.configuration.WidgetConfigurationActivity::class.java).apply {
+        val configureIntent = Intent(
+            this,
+            com.watchfulai.duaimagewidget.ui.configuration.WidgetConfigurationActivity::class.java,
+        ).apply {
             action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
@@ -90,97 +114,238 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun HomeScreen(
     status: String?,
+    onSettings: () -> Unit,
     onAddWidget: () -> Unit,
 ) {
-    Scaffold(modifier = Modifier.fillMaxSize()) { contentPadding ->
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            Surface(color = MaterialTheme.colorScheme.background) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .padding(top = 12.dp, bottom = 18.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    DuaPrimaryButton(
+                        text = "Add to home screen",
+                        onClick = onAddWidget,
+                        modifier = Modifier.fillMaxWidth(),
+                        leading = {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_add),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .padding(end = 10.dp)
+                                    .size(20.dp),
+                            )
+                        },
+                    )
+                    Text(
+                        text = "Private by design · no gallery permission",
+                        modifier = Modifier.padding(top = 9.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+            }
+        },
+    ) { contentPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(contentPadding)
-                .padding(horizontal = 24.dp, vertical = 28.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+                .padding(top = 18.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(22.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    BrandMark(size = 44.dp)
+                    Column {
+                        Text("Dua", style = MaterialTheme.typography.titleLarge)
+                        Text(
+                            "IMAGE WIDGET",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                }
+                DuaIconButton(
+                    icon = R.drawable.ic_settings,
+                    contentDescription = "Open settings",
+                    onClick = onSettings,
+                )
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                DuaPill(text = "A quiet reminder, always close")
                 Text(
-                    text = "Dua Image Widget",
+                    text = "Your dua,\none glance away.",
                     style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
                 Text(
-                    text = "Keep a meaningful dua visible whenever you return to your home screen.",
+                    text = "Turn any dua image into a beautiful, perfectly framed home-screen widget.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant,
-                            RoundedCornerShape(24.dp),
-                        )
-                        .padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+            WidgetShowcase()
+
+            status?.let {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
                 ) {
-                    InstructionStep("1", "Add the widget to your home screen")
-                    InstructionStep("2", "Choose a dua image from your photos")
-                    InstructionStep("3", "Fit the whole image or crop it to fill the frame")
-                    InstructionStep("4", "Long-press the widget later to resize or reconfigure")
-                }
-
-                status?.let {
-                    Text(
-                        text = it,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                MaterialTheme.colorScheme.secondaryContainer,
-                                RoundedCornerShape(14.dp),
-                            )
-                            .padding(14.dp),
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_home),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(
+                            text = it,
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
                 }
             }
 
-            Column {
-                Button(
-                    onClick = onAddWidget,
-                    modifier = Modifier.fillMaxWidth(),
+            DuaSurfaceCard(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
-                    Text("Add home-screen widget")
+                    Text("Beautiful in three steps", style = MaterialTheme.typography.titleLarge)
+                    HomeStep("01", "Add the widget", "Choose any available size on your home screen.")
+                    HomeStep("02", "Pick your image", "Use the system photo picker—your library stays private.")
+                    HomeStep("03", "Frame it perfectly", "Fit every line or fill, drag and pinch to crop.")
                 }
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    text = "No photo-library permission is required.",
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall,
-                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        RoundedCornerShape(22.dp),
+                    )
+                    .padding(18.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surface) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_shield),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(11.dp),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Your images stay yours", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Everything is stored only on this device.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun InstructionStep(number: String, text: String) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+private fun WidgetShowcase() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(244.dp)
+            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(30.dp))
+            .padding(22.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
-                .size(30.dp)
-                .background(MaterialTheme.colorScheme.primary, CircleShape),
-            contentAlignment = Alignment.Center,
+                .fillMaxWidth()
+                .height(146.dp)
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(26.dp))
+                .padding(horizontal = 22.dp, vertical = 18.dp),
         ) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .size(7.dp)
+                    .background(Gold300, CircleShape),
+            )
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = "رَبِّ زِدْنِي عِلْمًا",
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Medium,
+                )
+                Text(
+                    text = "My Lord, increase me in knowledge.",
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+        DuaPill(
+            text = "Fits every widget size",
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
+    }
+}
+
+@Composable
+private fun HomeStep(number: String, title: String, description: String) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
             Text(
                 text = number,
-                color = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
             )
         }
-        Text(text = text, modifier = Modifier.weight(1f))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(2.dp))
+            Text(
+                description,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
     }
 }

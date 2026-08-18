@@ -1,6 +1,7 @@
 package com.watchfulai.duaimagewidget.ui.configuration
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WidgetConfigurationContractTest {
@@ -47,5 +48,48 @@ class WidgetConfigurationContractTest {
 
         assertEquals(240f, resolved.width, 0f)
         assertEquals(80f, resolved.height, 0f)
+    }
+
+    @Test
+    fun androidDpDimensionsArePresentedAsLauncherCellSpans() {
+        assertEquals(
+            WidgetCellSize(columns = 4, rows = 2),
+            WidgetSizeDp(width = 250f, height = 110f).toWidgetCellSize(),
+        )
+        assertEquals(
+            WidgetCellSize(columns = 2, rows = 2),
+            WidgetSizeDp(width = 40f, height = 40f).toWidgetCellSize(),
+        )
+    }
+
+    @Test
+    fun launcherAllocatedFourthColumnIsNotRoundedUpToFive() {
+        assertEquals(
+            WidgetCellSize(columns = 4, rows = 2),
+            WidgetSizeDp(width = 293f, height = 117.666664f).toWidgetCellSize(),
+        )
+        assertEquals(
+            WidgetCellSize(columns = 3, rows = 2),
+            WidgetSizeDp(width = 190f, height = 117.666664f).toWidgetCellSize(),
+        )
+    }
+
+    @Test
+    fun currentCellSizeIsFirstAndStandardSizesAreUnique() {
+        val current = WidgetCellSize(columns = 4, rows = 2)
+        val sizes = availableWidgetCellSizes(current)
+
+        assertEquals(current, sizes.first())
+        assertEquals(sizes.size, sizes.distinct().size)
+        assertEquals(16, sizes.size)
+        assertTrue(sizes.all { it.columns in 2..5 && it.rows in 2..5 })
+    }
+
+    @Test
+    fun launcherCellSpanProducesAndroidPreviewDimensions() {
+        val preview = WidgetCellSize(columns = 4, rows = 2).toPreviewSizeDp()
+
+        assertEquals(250f, preview.width, 0f)
+        assertEquals(110f, preview.height, 0f)
     }
 }

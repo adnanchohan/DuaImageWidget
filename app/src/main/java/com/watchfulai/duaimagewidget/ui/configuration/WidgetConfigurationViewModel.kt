@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.watchfulai.duaimagewidget.data.CropMode
 import com.watchfulai.duaimagewidget.data.CropTransform
 import com.watchfulai.duaimagewidget.data.DEFAULT_WIDGET_BACKGROUND
+import com.watchfulai.duaimagewidget.data.AppSettingsRepository
 import com.watchfulai.duaimagewidget.data.WidgetConfig
 import com.watchfulai.duaimagewidget.data.WidgetConfigRepository
 import com.watchfulai.duaimagewidget.image.ImageStorage
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -46,6 +48,7 @@ class WidgetConfigurationViewModel(
     private val appWidgetId: Int,
 ) : AndroidViewModel(application) {
     private val repository = WidgetConfigRepository(application)
+    private val appSettingsRepository = AppSettingsRepository(application)
     private val _uiState = MutableStateFlow(WidgetEditorUiState())
     val uiState: StateFlow<WidgetEditorUiState> = _uiState.asStateFlow()
 
@@ -59,16 +62,17 @@ class WidgetConfigurationViewModel(
     init {
         viewModelScope.launch {
             val existing = repository.get(appWidgetId)
+            val defaults = appSettingsRepository.settings.first()
             originalImageFileName = existing?.imageFileName
             val bitmap = existing?.let { ImageStorage.load(application, it.imageFileName) }
             _uiState.value = WidgetEditorUiState(
                 isLoading = false,
                 imageFileName = existing?.imageFileName,
                 bitmap = bitmap,
-                cropMode = existing?.cropMode ?: CropMode.FIT,
+                cropMode = existing?.cropMode ?: defaults.defaultCropMode,
                 cropTransform = existing?.cropTransform ?: CropTransform(),
-                backgroundColor = existing?.backgroundColor ?: DEFAULT_WIDGET_BACKGROUND,
-                autoSaveCrop = existing?.autoSaveCrop ?: false,
+                backgroundColor = existing?.backgroundColor ?: defaults.defaultWidgetBackground,
+                autoSaveCrop = existing?.autoSaveCrop ?: defaults.autoSaveCropByDefault,
                 hasPersistedConfiguration = existing != null,
                 errorMessage = if (existing != null && bitmap == null) {
                     "The previous image is no longer available. Please choose it again."
@@ -92,7 +96,6 @@ class WidgetConfigurationViewModel(
                             isImporting = false,
                             imageFileName = stored.fileName,
                             bitmap = stored.bitmap,
-                            cropMode = CropMode.FIT,
                             cropTransform = CropTransform(),
                         )
                     }
