@@ -3,6 +3,9 @@ package com.watchfulai.duaimagewidget.image
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import androidx.core.graphics.createBitmap
 import com.watchfulai.duaimagewidget.data.WidgetConfig
@@ -18,6 +21,7 @@ object WidgetBitmapRenderer {
         requestedWidth: Int,
         requestedHeight: Int,
         config: WidgetConfig,
+        cornerRadiusPx: Float = 0f,
     ): Bitmap {
         val (targetWidth, targetHeight) = constrainedSize(requestedWidth, requestedHeight)
         val output = createBitmap(targetWidth, targetHeight)
@@ -44,6 +48,33 @@ object WidgetBitmapRenderer {
             destination,
             Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG or Paint.DITHER_FLAG),
         )
+
+        val requestedSafeWidth = requestedWidth.coerceAtLeast(1)
+        val requestedSafeHeight = requestedHeight.coerceAtLeast(1)
+        val outputScale = minOf(
+            targetWidth.toFloat() / requestedSafeWidth,
+            targetHeight.toFloat() / requestedSafeHeight,
+        )
+        val outputCornerRadius = (cornerRadiusPx.coerceAtLeast(0f) * outputScale)
+            .coerceAtMost(minOf(targetWidth, targetHeight) / 2f)
+
+        if (outputCornerRadius > 0f) {
+            val outsideCorners = Path().apply {
+                addRoundRect(
+                    RectF(0f, 0f, targetWidth.toFloat(), targetHeight.toFloat()),
+                    outputCornerRadius,
+                    outputCornerRadius,
+                    Path.Direction.CW,
+                )
+                fillType = Path.FillType.INVERSE_EVEN_ODD
+            }
+            val clearPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+            }
+            canvas.drawPath(outsideCorners, clearPaint)
+            clearPaint.xfermode = null
+        }
+
         return output
     }
 

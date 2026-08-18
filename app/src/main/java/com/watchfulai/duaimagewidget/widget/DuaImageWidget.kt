@@ -3,6 +3,7 @@ package com.watchfulai.duaimagewidget.widget
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -18,6 +19,7 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Box
@@ -52,7 +54,10 @@ class DuaImageWidget : GlanceAppWidget() {
             }
             val size = LocalSize.current
             val density = localContext.resources.displayMetrics.density
-            val rendered = remember(source, config, size, density) {
+            val cornerRadiusPx = remember(localContext, density) {
+                widgetCornerRadiusPx(localContext, density)
+            }
+            val rendered = remember(source, config, size, density, cornerRadiusPx) {
                 val currentConfig = config
                 val currentSource = source
                 if (currentSource == null || currentConfig == null) {
@@ -63,6 +68,7 @@ class DuaImageWidget : GlanceAppWidget() {
                         requestedWidth = (size.width.value * density).roundToInt(),
                         requestedHeight = (size.height.value * density).roundToInt(),
                         config = currentConfig,
+                        cornerRadiusPx = cornerRadiusPx,
                     )
                 }
             }
@@ -96,23 +102,38 @@ private fun WidgetContent(
         putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
     }
-    val modifier = GlanceModifier
+    val baseModifier = GlanceModifier
         .fillMaxSize()
-        .background(R.color.widget_background)
+        .cornerRadius(android.R.dimen.system_app_widget_background_radius)
         .clickable(actionStartActivity(configureIntent))
 
     if (renderedImage != null) {
         Image(
             provider = ImageProvider(renderedImage),
             contentDescription = context.getString(R.string.widget_image_description),
-            modifier = modifier,
+            modifier = baseModifier,
             contentScale = ContentScale.FillBounds,
         )
     } else {
-        Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Box(
+            modifier = baseModifier.background(
+                imageProvider = ImageProvider(R.drawable.widget_background),
+                colorFilter = null,
+            ),
+            contentAlignment = Alignment.Center,
+        ) {
             Text(
                 text = context.getString(R.string.widget_choose_image),
             )
         }
     }
 }
+
+private fun widgetCornerRadiusPx(context: Context, density: Float): Float =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        context.resources.getDimension(android.R.dimen.system_app_widget_background_radius)
+    } else {
+        FALLBACK_WIDGET_CORNER_RADIUS_DP * density
+    }
+
+private const val FALLBACK_WIDGET_CORNER_RADIUS_DP = 20f
