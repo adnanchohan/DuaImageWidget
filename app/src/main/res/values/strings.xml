@@ -34,11 +34,13 @@
     <string name="settings_appearance_title">Appearance</string>
     <string name="settings_appearance_description">Choose how the app looks on this device.</string>
     <string name="settings_more_title">More</string>
-    <string name="settings_more_description">Discover more, share the app and choose your language.</string>
+    <string name="settings_more_description">Discover more, share the app, get support and choose your language.</string>
     <string name="settings_more_apps_title">More Apps</string>
     <string name="settings_more_apps_description">Discover more apps from WatchFulAI.</string>
     <string name="settings_share_title">Share This App</string>
     <string name="settings_share_description">Recommend Dua Image Widget to friends and family.</string>
+    <string name="settings_contact_title">Contact Us</string>
+    <string name="settings_contact_description">Questions or feedback? Send us an email.</string>
     <string name="settings_language_title">Change App Language</string>
     <string name="settings_language_description">Set your preferred app language.</string>
     <string name="settings_private_title">Private on your device</string>
@@ -53,6 +55,9 @@
     <string name="language_arabic">العربية</string>
     <string name="share_message">Create beautifully framed dua widgets for your home screen. %1$s</string>
     <string name="share_chooser_title">Share Dua Image Widget</string>
+    <string name="contact_email_subject">Dua Image Widget support</string>
+    <string name="contact_email_chooser_title">Contact Dua Image Widget</string>
+    <string name="error_email_app_unavailable">No email app is available on this device.</string>
 
     <string name="config_saving">Saving…</string>
     <string name="config_done">Done</string>

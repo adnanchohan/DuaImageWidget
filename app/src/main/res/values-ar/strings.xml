@@ -33,11 +33,13 @@
     <string name="settings_appearance_title">المظهر</string>
     <string name="settings_appearance_description">اختر طريقة ظهور التطبيق على هذا الجهاز.</string>
     <string name="settings_more_title">المزيد</string>
-    <string name="settings_more_description">اكتشف المزيد وشارك التطبيق واختر لغتك.</string>
+    <string name="settings_more_description">اكتشف المزيد وشارك التطبيق وتواصل معنا واختر لغتك.</string>
     <string name="settings_more_apps_title">المزيد من التطبيقات</string>
     <string name="settings_more_apps_description">اكتشف المزيد من تطبيقات WatchFulAI.</string>
     <string name="settings_share_title">شارك هذا التطبيق</string>
     <string name="settings_share_description">شارك أداة صورة الدعاء مع الأصدقاء والعائلة.</string>
+    <string name="settings_contact_title">تواصل معنا</string>
+    <string name="settings_contact_description">لديك سؤال أو ملاحظة؟ أرسل لنا بريدًا إلكترونيًا.</string>
     <string name="settings_language_title">تغيير لغة التطبيق</string>
     <string name="settings_language_description">اختر لغتك المفضلة للتطبيق.</string>
     <string name="settings_private_title">خصوصيتك محفوظة على جهازك</string>
@@ -52,6 +54,9 @@
     <string name="language_arabic">العربية</string>
     <string name="share_message">أنشئ أدوات دعاء مؤطرة بشكل جميل لشاشتك الرئيسية. %1$s</string>
     <string name="share_chooser_title">مشاركة أداة صورة الدعاء</string>
+    <string name="contact_email_subject">دعم أداة صورة الدعاء</string>
+    <string name="contact_email_chooser_title">التواصل مع أداة صورة الدعاء</string>
+    <string name="error_email_app_unavailable">لا يتوفر تطبيق بريد إلكتروني على هذا الجهاز.</string>
 
     <string name="config_saving">جارٍ الحفظ…</string>
     <string name="config_done">تم</string>

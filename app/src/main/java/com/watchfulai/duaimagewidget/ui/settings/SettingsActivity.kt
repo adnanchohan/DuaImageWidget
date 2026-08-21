@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatDelegate
@@ -81,6 +82,7 @@ class SettingsActivity : LocaleAwareActivity() {
                     onThemeChanged = { scope.launch { repository.setTheme(it) } },
                     onMoreApps = ::openMoreApps,
                     onShareApp = ::shareApp,
+                    onContactUs = ::contactUs,
                     onLanguageChanged = { language ->
                         scope.launch {
                             repository.setLanguage(language)
@@ -132,6 +134,40 @@ class SettingsActivity : LocaleAwareActivity() {
         }
         startActivity(Intent.createChooser(shareIntent, getString(R.string.share_chooser_title)))
     }
+
+    private fun contactUs() {
+        val directEmailIntent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:$SUPPORT_EMAIL")
+            putExtra(Intent.EXTRA_SUBJECT, getString(R.string.contact_email_subject))
+        }
+        val contactIntent = if (directEmailIntent.resolveActivity(packageManager) != null) {
+            directEmailIntent
+        } else {
+            Intent(Intent.ACTION_SEND).apply {
+                type = "message/rfc822"
+                putExtra(Intent.EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
+                putExtra(Intent.EXTRA_SUBJECT, getString(R.string.contact_email_subject))
+            }
+        }
+        if (contactIntent.resolveActivity(packageManager) == null) {
+            Toast.makeText(
+                this,
+                getString(R.string.error_email_app_unavailable),
+                Toast.LENGTH_LONG,
+            ).show()
+            return
+        }
+        startActivity(
+            Intent.createChooser(
+                contactIntent,
+                getString(R.string.contact_email_chooser_title),
+            ),
+        )
+    }
+
+    private companion object {
+        const val SUPPORT_EMAIL = "watchfulai.cs@gmail.com"
+    }
 }
 
 @Composable
@@ -142,6 +178,7 @@ private fun SettingsScreen(
     onThemeChanged: (AppTheme) -> Unit,
     onMoreApps: () -> Unit,
     onShareApp: () -> Unit,
+    onContactUs: () -> Unit,
     onLanguageChanged: (AppLanguage) -> Unit,
 ) {
     Scaffold(modifier = Modifier.fillMaxSize()) { contentPadding ->
@@ -209,6 +246,12 @@ private fun SettingsScreen(
                     title = stringResource(R.string.settings_share_title),
                     description = stringResource(R.string.settings_share_description),
                     onClick = onShareApp,
+                )
+                SettingsActionRow(
+                    icon = R.drawable.ic_email,
+                    title = stringResource(R.string.settings_contact_title),
+                    description = stringResource(R.string.settings_contact_description),
+                    onClick = onContactUs,
                 )
                 LanguageSettingRow(
                     selected = selectedLanguage,

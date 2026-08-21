@@ -33,11 +33,13 @@
     <string name="settings_appearance_title">ظاہری شکل</string>
     <string name="settings_appearance_description">منتخب کریں کہ اس ڈیوائس پر ایپ کیسی دکھائی دے۔</string>
     <string name="settings_more_title">مزید</string>
-    <string name="settings_more_description">مزید دریافت کریں، ایپ شیئر کریں اور اپنی زبان منتخب کریں۔</string>
+    <string name="settings_more_description">مزید دریافت کریں، ایپ شیئر کریں، رابطہ کریں اور اپنی زبان منتخب کریں۔</string>
     <string name="settings_more_apps_title">مزید ایپس</string>
     <string name="settings_more_apps_description">WatchFulAI کی مزید ایپس دریافت کریں۔</string>
     <string name="settings_share_title">یہ ایپ شیئر کریں</string>
     <string name="settings_share_description">دعا امیج ویجٹ دوستوں اور خاندان کے ساتھ شیئر کریں۔</string>
+    <string name="settings_contact_title">ہم سے رابطہ کریں</string>
+    <string name="settings_contact_description">کوئی سوال یا رائے ہے؟ ہمیں ای میل بھیجیں۔</string>
     <string name="settings_language_title">ایپ کی زبان تبدیل کریں</string>
     <string name="settings_language_description">ایپ کے لیے اپنی پسندیدہ زبان منتخب کریں۔</string>
     <string name="settings_private_title">آپ کے ڈیوائس پر نجی</string>
@@ -52,6 +54,9 @@
     <string name="language_arabic">العربية</string>
     <string name="share_message">اپنی ہوم اسکرین کے لیے خوبصورتی سے فریم کیے گئے دعا ویجٹس بنائیں۔ %1$s</string>
     <string name="share_chooser_title">دعا امیج ویجٹ شیئر کریں</string>
+    <string name="contact_email_subject">دعا امیج ویجٹ سپورٹ</string>
+    <string name="contact_email_chooser_title">دعا امیج ویجٹ سے رابطہ کریں</string>
+    <string name="error_email_app_unavailable">اس ڈیوائس پر کوئی ای میل ایپ دستیاب نہیں ہے۔</string>
 
     <string name="config_saving">محفوظ ہو رہا ہے…</string>
     <string name="config_done">مکمل</string>
