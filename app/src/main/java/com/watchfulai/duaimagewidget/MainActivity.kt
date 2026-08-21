@@ -9,6 +9,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -58,10 +61,12 @@ import com.watchfulai.duaimagewidget.ui.LocaleAwareActivity
 import com.watchfulai.duaimagewidget.ui.settings.SettingsActivity
 import com.watchfulai.duaimagewidget.ui.theme.DuaImageWidgetTheme
 import com.watchfulai.duaimagewidget.ui.theme.Gold300
+import com.watchfulai.duaimagewidget.ui.widgets.YourWidgetsActivity
 import com.watchfulai.duaimagewidget.widget.DuaImageWidgetReceiver
 
 class MainActivity : LocaleAwareActivity() {
     private val settingsRepository by lazy { AppSettingsRepository(applicationContext) }
+    private var activeWidgetCount by mutableIntStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,8 +79,12 @@ class MainActivity : LocaleAwareActivity() {
                 val pinFallbackMessage = stringResource(R.string.status_widget_pin_fallback)
                 HomeScreen(
                     status = status,
+                    activeWidgetCount = activeWidgetCount,
                     onSettings = {
                         startActivity(Intent(this, SettingsActivity::class.java))
+                    },
+                    onYourWidgets = {
+                        startActivity(Intent(this, YourWidgetsActivity::class.java))
                     },
                     onAddWidget = {
                         status = if (requestWidgetPin()) {
@@ -87,6 +96,13 @@ class MainActivity : LocaleAwareActivity() {
                 )
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        activeWidgetCount = AppWidgetManager.getInstance(this).getAppWidgetIds(
+            ComponentName(this, DuaImageWidgetReceiver::class.java),
+        ).size
     }
 
     private fun requestWidgetPin(): Boolean {
@@ -123,7 +139,9 @@ class MainActivity : LocaleAwareActivity() {
 @Composable
 private fun HomeScreen(
     status: String?,
+    activeWidgetCount: Int,
     onSettings: () -> Unit,
+    onYourWidgets: () -> Unit,
     onAddWidget: () -> Unit,
 ) {
     Scaffold(
@@ -223,6 +241,11 @@ private fun HomeScreen(
                 )
             }
 
+            YourWidgetsTile(
+                activeWidgetCount = activeWidgetCount,
+                onClick = onYourWidgets,
+            )
+
             WidgetShowcase()
 
             status?.let {
@@ -306,6 +329,76 @@ private fun HomeScreen(
 //                    )
 //                }
 //            }
+        }
+    }
+}
+
+@Composable
+private fun YourWidgetsTile(
+    activeWidgetCount: Int,
+    onClick: () -> Unit,
+) {
+    DuaSurfaceCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+    ) {
+        Row(
+            modifier = Modifier.padding(18.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surface) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_widgets),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .size(22.dp),
+                )
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
+                Text(
+                    stringResource(R.string.home_your_widgets_title),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    stringResource(R.string.home_your_widgets_description),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surface) {
+                    Text(
+                        text = pluralStringResource(
+                            R.plurals.widgets_active_count,
+                            activeWidgetCount,
+                            activeWidgetCount,
+                        ),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Icon(
+                    painter = painterResource(R.drawable.ic_chevron_right),
+                    contentDescription = stringResource(R.string.open_your_widgets),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
         }
     }
 }

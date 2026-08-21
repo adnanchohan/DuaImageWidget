@@ -17,6 +17,9 @@
     <string name="home_hero_suffix">،\nعلى بُعد نظرة واحدة.</string>
     <string name="home_description">حوّل أي صورة دعاء إلى أداة شاشة رئيسية جميلة ومؤطرة بإتقان.</string>
     <string name="open_settings">افتح الإعدادات</string>
+    <string name="home_your_widgets_title">أدواتك</string>
+    <string name="home_your_widgets_description">اعرض وعدّل كل أداة موجودة على شاشتك الرئيسية.</string>
+    <string name="open_your_widgets">افتح أدواتك</string>
     <string name="home_steps_title">بثلاث خطوات بسيطة</string>
     <string name="home_step_add_title">أضف الأداة</string>
     <string name="home_step_add_description">اختر أي حجم متاح على شاشتك الرئيسية.</string>
@@ -26,6 +29,25 @@
     <string name="home_step_frame_description">اعرض كل سطر أو املأ الإطار، واسحب وقرّب للقص.</string>
     <string name="home_showcase_translation">يا رب، زدني علمًا.</string>
     <string name="home_showcase_size_pill">يناسب كل أحجام الأدوات</string>
+
+    <string name="widgets_title">أدواتك</string>
+    <string name="widgets_subtitle">تظهر هنا فقط الأدوات الموجودة حاليًا على شاشتك الرئيسية.</string>
+    <plurals name="widgets_active_count">
+        <item quantity="zero">⁦%1$d⁩ نشطة</item>
+        <item quantity="one">⁦%1$d⁩ نشطة</item>
+        <item quantity="two">⁦%1$d⁩ نشطتان</item>
+        <item quantity="few">⁦%1$d⁩ نشطة</item>
+        <item quantity="many">⁦%1$d⁩ نشطة</item>
+        <item quantity="other">⁦%1$d⁩ نشطة</item>
+    </plurals>
+    <string name="widgets_loading">جارٍ تحميل أدواتك…</string>
+    <string name="widgets_empty_title">لا توجد أدوات بعد</string>
+    <string name="widgets_empty_description">أضف أداة صورة الدعاء إلى شاشتك الرئيسية، ثم ستظهر هنا.</string>
+    <string name="widgets_back_to_home">العودة إلى الرئيسية</string>
+    <string name="widgets_item_title">الأداة ⁦%1$d⁩</string>
+    <string name="widgets_needs_image">تحتاج إلى صورة</string>
+    <string name="widgets_preview_description">معاينة الأداة ⁦%1$d⁩</string>
+    <string name="widgets_edit">تعديل الأداة</string>
 
     <string name="back">رجوع</string>
     <string name="settings_title">الإعدادات</string>
@@ -63,6 +85,7 @@
     <string name="config_save_widget">حفظ الأداة</string>
     <string name="config_open_app_add_widget">افتح التطبيق · أضف أداة أخرى</string>
     <string name="config_cancel_return_home">إلغاء والعودة إلى الشاشة الرئيسية</string>
+    <string name="config_back_to_widgets">العودة إلى أدواتك</string>
     <string name="config_title">اضبط إطار دعائك</string>
     <string name="config_preview_current_exact">معاينة الحجم الحالي الدقيق على الشاشة الرئيسية.</string>
     <string name="config_preview_target">معاينة الحجم المستهدف ⁦%1$s⁩.</string>

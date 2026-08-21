@@ -17,6 +17,9 @@
     <string name="home_hero_suffix">،\nبس ایک نظر کی دوری پر۔</string>
     <string name="home_description">کسی بھی دعا کی تصویر کو ایک خوبصورت، مکمل طور پر فریم شدہ ہوم اسکرین ویجٹ میں بدلیں۔</string>
     <string name="open_settings">ترتیبات کھولیں</string>
+    <string name="home_your_widgets_title">آپ کے ویجٹس</string>
+    <string name="home_your_widgets_description">اپنی ہوم اسکرین پر موجود ہر ویجٹ دیکھیں اور اس میں ترمیم کریں۔</string>
+    <string name="open_your_widgets">اپنے ویجٹس کھولیں</string>
     <string name="home_steps_title">تین آسان مراحل میں</string>
     <string name="home_step_add_title">ویجٹ شامل کریں</string>
     <string name="home_step_add_description">اپنی ہوم اسکرین پر دستیاب کوئی بھی سائز منتخب کریں۔</string>
@@ -26,6 +29,21 @@
     <string name="home_step_frame_description">ہر سطر کو فِٹ کریں یا فریم بھریں، کراپ کرنے کے لیے ڈریگ اور پنچ کریں۔</string>
     <string name="home_showcase_translation">اے میرے رب! میرے علم میں اضافہ فرما۔</string>
     <string name="home_showcase_size_pill">ہر ویجٹ سائز کے مطابق</string>
+
+    <string name="widgets_title">آپ کے ویجٹس</string>
+    <string name="widgets_subtitle">یہاں صرف وہ ویجٹس دکھائے جاتے ہیں جو اس وقت ہوم اسکرین پر موجود ہیں۔</string>
+    <plurals name="widgets_active_count">
+        <item quantity="one">⁦%1$d⁩ فعال</item>
+        <item quantity="other">⁦%1$d⁩ فعال</item>
+    </plurals>
+    <string name="widgets_loading">آپ کے ویجٹس لوڈ ہو رہے ہیں…</string>
+    <string name="widgets_empty_title">ابھی کوئی ویجٹ نہیں</string>
+    <string name="widgets_empty_description">اپنی ہوم اسکرین پر دعا امیج ویجٹ شامل کریں، پھر وہ یہاں دکھائی دے گا۔</string>
+    <string name="widgets_back_to_home">ہوم پر واپس جائیں</string>
+    <string name="widgets_item_title">ویجٹ ⁦%1$d⁩</string>
+    <string name="widgets_needs_image">تصویر درکار ہے</string>
+    <string name="widgets_preview_description">ویجٹ ⁦%1$d⁩ کا پیش منظر</string>
+    <string name="widgets_edit">ویجٹ میں ترمیم کریں</string>
 
     <string name="back">واپس</string>
     <string name="settings_title">ترتیبات</string>
@@ -63,6 +81,7 @@
     <string name="config_save_widget">ویجٹ محفوظ کریں</string>
     <string name="config_open_app_add_widget">ایپ کھولیں · ایک اور ویجٹ شامل کریں</string>
     <string name="config_cancel_return_home">منسوخ کریں اور ہوم اسکرین پر واپس جائیں</string>
+    <string name="config_back_to_widgets">اپنے ویجٹس پر واپس جائیں</string>
     <string name="config_title">اپنی دعا فریم کریں</string>
     <string name="config_preview_current_exact">موجودہ ہوم اسکرین کے عین سائز کا پیش منظر۔</string>
     <string name="config_preview_target">⁦%1$s⁩ ہدف سائز کا پیش منظر۔</string>

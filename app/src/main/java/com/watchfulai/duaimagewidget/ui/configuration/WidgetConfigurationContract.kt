@@ -56,6 +56,9 @@ internal fun Intent.widgetSizeOrNull(): WidgetSizeDp? {
     return size.takeIf(WidgetSizeDp::isValid)
 }
 
+internal const val EXTRA_EDIT_FROM_WIDGET_LIST =
+    "com.watchfulai.duaimagewidget.extra.EDIT_FROM_WIDGET_LIST"
+
 internal fun resolveWidgetSize(
     exactSize: WidgetSizeDp?,
     minWidth: Int,

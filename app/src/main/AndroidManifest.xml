@@ -26,6 +26,11 @@
             android:theme="@style/Theme.DuaImageWidget"
             android:windowSoftInputMode="adjustResize" />
         <activity
+            android:name=".ui.widgets.YourWidgetsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DuaImageWidget"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".ui.configuration.WidgetConfigurationActivity"
             android:excludeFromRecents="true"
             android:exported="true"

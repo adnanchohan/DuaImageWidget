@@ -100,6 +100,9 @@ class WidgetConfigurationActivity : LocaleAwareActivity() {
             WidgetConfigurationViewModel.Factory(application, appWidgetId),
         )[WidgetConfigurationViewModel::class.java]
     }
+    private val isEditingFromWidgetList: Boolean by lazy {
+        intent?.getBooleanExtra(EXTRA_EDIT_FROM_WIDGET_LIST, false) == true
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -125,6 +128,11 @@ class WidgetConfigurationActivity : LocaleAwareActivity() {
                 WidgetConfigurationScreen(
                     state = state,
                     widgetSize = widgetSize,
+                    backContentDescription = if (isEditingFromWidgetList) {
+                        R.string.config_back_to_widgets
+                    } else {
+                        R.string.config_cancel_return_home
+                    },
                     onChooseImage = editorViewModel::importImage,
                     onCropModeChanged = editorViewModel::setCropMode,
                     onBackgroundColorChanged = editorViewModel::setBackgroundColor,
@@ -209,6 +217,7 @@ class WidgetConfigurationActivity : LocaleAwareActivity() {
 private fun WidgetConfigurationScreen(
     state: WidgetEditorUiState,
     widgetSize: WidgetSizeDp,
+    @androidx.annotation.StringRes backContentDescription: Int,
     onChooseImage: (android.net.Uri) -> Unit,
     onCropModeChanged: (CropMode) -> Unit,
     onBackgroundColorChanged: (Int) -> Unit,
@@ -314,7 +323,7 @@ private fun WidgetConfigurationScreen(
             ) {
                 DuaIconButton(
                     icon = R.drawable.ic_arrow_back,
-                    contentDescription = stringResource(R.string.config_cancel_return_home),
+                    contentDescription = stringResource(backContentDescription),
                     onClick = onCancel,
                 )
                 Column(modifier = Modifier.weight(1f)) {

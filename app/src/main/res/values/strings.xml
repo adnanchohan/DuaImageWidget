@@ -17,6 +17,9 @@
     <string name="home_hero_suffix">,\none glance away.</string>
     <string name="home_description">Turn any dua image into a beautiful, perfectly framed home-screen widget.</string>
     <string name="open_settings">Open settings</string>
+    <string name="home_your_widgets_title">Your widgets</string>
+    <string name="home_your_widgets_description">View and edit every widget on your home screen.</string>
+    <string name="open_your_widgets">Open your widgets</string>
     <string name="home_steps_title">Beautiful in three steps</string>
     <string name="home_step_add_title">Add the widget</string>
     <string name="home_step_add_description">Choose any available size on your home screen.</string>
@@ -27,6 +30,21 @@
     <string name="home_showcase_dua" translatable="false">رَبِّ زِدْنِي عِلْمًا</string>
     <string name="home_showcase_translation">My Lord, increase me in knowledge.</string>
     <string name="home_showcase_size_pill">Fits every widget size</string>
+
+    <string name="widgets_title">Your widgets</string>
+    <string name="widgets_subtitle">Only widgets currently on your home screen appear here.</string>
+    <plurals name="widgets_active_count">
+        <item quantity="one">%1$d active</item>
+        <item quantity="other">%1$d active</item>
+    </plurals>
+    <string name="widgets_loading">Loading your widgets…</string>
+    <string name="widgets_empty_title">No widgets yet</string>
+    <string name="widgets_empty_description">Add a Dua Image Widget to your home screen, then it will appear here.</string>
+    <string name="widgets_back_to_home">Back to home</string>
+    <string name="widgets_item_title">Widget %1$d</string>
+    <string name="widgets_needs_image">Needs image</string>
+    <string name="widgets_preview_description">Preview of widget %1$d</string>
+    <string name="widgets_edit">Edit widget</string>
 
     <string name="back">Back</string>
     <string name="settings_title">Settings</string>
@@ -64,6 +82,7 @@
     <string name="config_save_widget">Save widget</string>
     <string name="config_open_app_add_widget">Open app · add another widget</string>
     <string name="config_cancel_return_home">Cancel and return home</string>
+    <string name="config_back_to_widgets">Back to your widgets</string>
     <string name="config_title">Frame your dua</string>
     <string name="config_preview_current_exact">Previewing the exact current home-screen size.</string>
     <string name="config_preview_target">Previewing the %1$s target size.</string>
