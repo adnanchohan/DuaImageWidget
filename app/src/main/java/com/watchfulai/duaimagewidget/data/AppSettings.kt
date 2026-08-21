@@ -17,8 +17,16 @@ enum class AppTheme {
     DARK,
 }
 
+enum class AppLanguage {
+    SYSTEM,
+    ENGLISH,
+    URDU,
+    ARABIC,
+}
+
 data class AppSettings(
     val theme: AppTheme = AppTheme.SYSTEM,
+    val language: AppLanguage = AppLanguage.SYSTEM,
     val defaultCropMode: CropMode = CropMode.FIT,
     val autoSaveCropByDefault: Boolean = false,
     val defaultWidgetBackground: Int = DEFAULT_WIDGET_BACKGROUND,
@@ -32,6 +40,9 @@ class AppSettingsRepository(context: Context) {
             theme = preferences[Keys.theme]
                 ?.let { stored -> AppTheme.entries.firstOrNull { it.name == stored } }
                 ?: AppTheme.SYSTEM,
+            language = preferences[Keys.language]
+                ?.let { stored -> AppLanguage.entries.firstOrNull { it.name == stored } }
+                ?: AppLanguage.SYSTEM,
             defaultCropMode = preferences[Keys.defaultCropMode]
                 ?.let { stored -> CropMode.entries.firstOrNull { it.name == stored } }
                 ?: CropMode.FIT,
@@ -43,6 +54,10 @@ class AppSettingsRepository(context: Context) {
 
     suspend fun setTheme(theme: AppTheme) {
         appContext.appSettingsDataStore.edit { it[Keys.theme] = theme.name }
+    }
+
+    suspend fun setLanguage(language: AppLanguage) {
+        appContext.appSettingsDataStore.edit { it[Keys.language] = language.name }
     }
 
     suspend fun setDefaultCropMode(mode: CropMode) {
@@ -59,6 +74,7 @@ class AppSettingsRepository(context: Context) {
 
     private object Keys {
         val theme = stringPreferencesKey("theme")
+        val language = stringPreferencesKey("language")
         val defaultCropMode = stringPreferencesKey("default_crop_mode")
         val autoSaveCropByDefault = booleanPreferencesKey("auto_save_crop_by_default")
         val defaultWidgetBackground = intPreferencesKey("default_widget_background")

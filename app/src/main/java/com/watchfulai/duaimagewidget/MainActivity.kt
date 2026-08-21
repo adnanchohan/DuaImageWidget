@@ -197,7 +197,7 @@ private fun HomeScreen(
                                     fontWeight = FontWeight.Black,
                                 ),
                             ) {
-                                append("دعاء")
+                                append("دُعَاء")
                             }
                             append(",\none glance away.")
                         },

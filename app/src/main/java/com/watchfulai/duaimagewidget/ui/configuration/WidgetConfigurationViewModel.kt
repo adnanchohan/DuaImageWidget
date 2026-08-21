@@ -117,6 +117,12 @@ class WidgetConfigurationViewModel(
         scheduleAutoSave()
     }
 
+    fun setBackgroundColor(color: Int) {
+        if (_uiState.value.backgroundColor == color) return
+        _uiState.update { it.copy(backgroundColor = color) }
+        scheduleAutoSave()
+    }
+
     fun setCropTransform(transform: CropTransform) {
         _uiState.update { it.copy(cropTransform = transform) }
         scheduleAutoSave()

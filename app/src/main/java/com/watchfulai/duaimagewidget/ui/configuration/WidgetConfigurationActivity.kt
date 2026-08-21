@@ -73,6 +73,7 @@ import com.watchfulai.duaimagewidget.data.AppSettings
 import com.watchfulai.duaimagewidget.data.AppSettingsRepository
 import com.watchfulai.duaimagewidget.data.CropMode
 import com.watchfulai.duaimagewidget.data.CropTransform
+import com.watchfulai.duaimagewidget.data.DEFAULT_WIDGET_BACKGROUND
 import com.watchfulai.duaimagewidget.image.CropMath
 import com.watchfulai.duaimagewidget.ui.components.DuaIconButton
 import com.watchfulai.duaimagewidget.ui.components.DuaPrimaryButton
@@ -125,6 +126,7 @@ class WidgetConfigurationActivity : ComponentActivity() {
                     widgetSize = widgetSize,
                     onChooseImage = editorViewModel::importImage,
                     onCropModeChanged = editorViewModel::setCropMode,
+                    onBackgroundColorChanged = editorViewModel::setBackgroundColor,
                     onCropTransformChanged = editorViewModel::setCropTransform,
                     onResetCrop = editorViewModel::resetCrop,
                     onAutoSaveCropChanged = editorViewModel::setAutoSaveCrop,
@@ -217,6 +219,7 @@ private fun WidgetConfigurationScreen(
     widgetSize: WidgetSizeDp,
     onChooseImage: (android.net.Uri) -> Unit,
     onCropModeChanged: (CropMode) -> Unit,
+    onBackgroundColorChanged: (Int) -> Unit,
     onCropTransformChanged: (CropTransform) -> Unit,
     onResetCrop: () -> Unit,
     onAutoSaveCropChanged: (Boolean) -> Unit,
@@ -433,6 +436,31 @@ private fun WidgetConfigurationScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.bodySmall,
                             )
+                            if (state.cropMode == CropMode.FIT) {
+                                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Text(
+                                        "Fit background",
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        FIT_BACKGROUND_COLORS.forEach { color ->
+                                            FitBackgroundSwatch(
+                                                color = color,
+                                                selected = state.backgroundColor == color,
+                                                onClick = { onBackgroundColorChanged(color) },
+                                            )
+                                        }
+                                    }
+                                    Text(
+                                        "Choose the color visible around images in Fit mode.",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                }
+                            }
                         }
                     }
 
@@ -717,6 +745,43 @@ private fun CropModeSelector(
 }
 
 @Composable
+private fun FitBackgroundSwatch(
+    color: Int,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val ringColor = if (selected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.outlineVariant
+    }
+    Box(
+        modifier = Modifier
+            .size(46.dp)
+            .border(BorderStroke(if (selected) 3.dp else 1.dp, ringColor), CircleShape)
+            .padding(5.dp)
+            .background(Color(color), CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (selected) {
+            Box(
+                modifier = Modifier
+                    .size(9.dp)
+                    .background(
+                        if (color == DARK_FIT_BACKGROUND) {
+                            Color.White
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        },
+                        CircleShape,
+                    ),
+            )
+        }
+    }
+}
+
+@Composable
 private fun CropModeOption(
     label: String,
     selected: Boolean,
@@ -835,3 +900,11 @@ private fun CropPreview(
         }
     }
 }
+
+private const val DARK_FIT_BACKGROUND = 0xFF17201D.toInt()
+private val FIT_BACKGROUND_COLORS = listOf(
+    DEFAULT_WIDGET_BACKGROUND,
+    0xFFFFFFFF.toInt(),
+    0xFFE4F3EE.toInt(),
+    DARK_FIT_BACKGROUND,
+)

@@ -1,12 +1,12 @@
 package com.watchfulai.duaimagewidget.ui.settings
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,28 +22,33 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.annotation.DrawableRes
 import com.watchfulai.duaimagewidget.R
+import com.watchfulai.duaimagewidget.data.AppLanguage
 import com.watchfulai.duaimagewidget.data.AppSettings
 import com.watchfulai.duaimagewidget.data.AppSettingsRepository
 import com.watchfulai.duaimagewidget.data.AppTheme
-import com.watchfulai.duaimagewidget.data.CropMode
-import com.watchfulai.duaimagewidget.data.DEFAULT_WIDGET_BACKGROUND
 import com.watchfulai.duaimagewidget.ui.components.BrandMark
 import com.watchfulai.duaimagewidget.ui.components.DuaIconButton
 import com.watchfulai.duaimagewidget.ui.components.DuaSurfaceCard
@@ -64,18 +69,40 @@ class SettingsActivity : ComponentActivity() {
                     settings = settings,
                     onBack = ::finish,
                     onThemeChanged = { scope.launch { repository.setTheme(it) } },
-                    onDefaultCropChanged = {
-                        scope.launch { repository.setDefaultCropMode(it) }
-                    },
-                    onAutoSaveChanged = {
-                        scope.launch { repository.setAutoSaveCropByDefault(it) }
-                    },
-                    onBackgroundChanged = {
-                        scope.launch { repository.setDefaultWidgetBackground(it) }
+                    onMoreApps = ::openMoreApps,
+                    onShareApp = ::shareApp,
+                    onLanguageChanged = { language ->
+                        scope.launch { repository.setLanguage(language) }
                     },
                 )
             }
         }
+    }
+
+    private fun openMoreApps() {
+        val marketIntent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("market://search?q=pub:WatchFulAI"),
+        )
+        val webIntent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("https://play.google.com/store/search?q=WatchFulAI&c=apps"),
+        )
+        runCatching { startActivity(marketIntent) }
+            .onFailure { startActivity(webIntent) }
+    }
+
+    private fun shareApp() {
+        val storeUrl = "https://play.google.com/store/apps/details?id=$packageName"
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, "Dua Image Widget")
+            putExtra(
+                Intent.EXTRA_TEXT,
+                "Create beautifully framed dua widgets for your home screen. $storeUrl",
+            )
+        }
+        startActivity(Intent.createChooser(shareIntent, "Share Dua Image Widget"))
     }
 }
 
@@ -84,9 +111,9 @@ private fun SettingsScreen(
     settings: AppSettings,
     onBack: () -> Unit,
     onThemeChanged: (AppTheme) -> Unit,
-    onDefaultCropChanged: (CropMode) -> Unit,
-    onAutoSaveChanged: (Boolean) -> Unit,
-    onBackgroundChanged: (Int) -> Unit,
+    onMoreApps: () -> Unit,
+    onShareApp: () -> Unit,
+    onLanguageChanged: (AppLanguage) -> Unit,
 ) {
     Scaffold(modifier = Modifier.fillMaxSize()) { contentPadding ->
         Column(
@@ -111,7 +138,7 @@ private fun SettingsScreen(
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Settings", style = MaterialTheme.typography.headlineSmall)
                     Text(
-                        "Make every new widget feel like yours.",
+                        "Personalize the app and stay connected.",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -136,55 +163,25 @@ private fun SettingsScreen(
             }
 
             SettingsSection(
-                title = "New widget defaults",
-                description = "These choices are applied the first time you add a widget.",
+                title = "More",
+                description = "Discover more, share the app and choose your language.",
             ) {
-                Text("Image display", style = MaterialTheme.typography.titleSmall)
-                SegmentedSelector {
-                    SegmentedOption(
-                        label = "Fit",
-                        selected = settings.defaultCropMode == CropMode.FIT,
-                        modifier = Modifier.weight(1f),
-                        onClick = { onDefaultCropChanged(CropMode.FIT) },
-                    )
-                    SegmentedOption(
-                        label = "Fill & crop",
-                        selected = settings.defaultCropMode == CropMode.FILL,
-                        modifier = Modifier.weight(1f),
-                        onClick = { onDefaultCropChanged(CropMode.FILL) },
-                    )
-                }
-                SettingSwitchRow(
-                    title = "Auto-save crop",
-                    description = "Keep future crop and position changes without tapping Save.",
-                    checked = settings.autoSaveCropByDefault,
-                    onCheckedChange = onAutoSaveChanged,
+                SettingsActionRow(
+                    icon = R.drawable.ic_apps,
+                    title = "More Apps",
+                    description = "Discover more apps from WatchFulAI.",
+                    onClick = onMoreApps,
                 )
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Fit background", style = MaterialTheme.typography.titleSmall)
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        listOf(
-                            DEFAULT_WIDGET_BACKGROUND,
-                            0xFFFFFFFF.toInt(),
-                            0xFFE4F3EE.toInt(),
-                            0xFF17201D.toInt(),
-                        ).forEach { color ->
-                            BackgroundSwatch(
-                                color = color,
-                                selected = settings.defaultWidgetBackground == color,
-                                onClick = { onBackgroundChanged(color) },
-                            )
-                        }
-                    }
-                    Text(
-                        "Visible around images that use Fit mode.",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
+                SettingsActionRow(
+                    icon = R.drawable.ic_share,
+                    title = "Share This App",
+                    description = "Recommend Dua Image Widget to friends and family.",
+                    onClick = onShareApp,
+                )
+                LanguageSettingRow(
+                    selected = settings.language,
+                    onSelected = onLanguageChanged,
+                )
             }
 
             DuaSurfaceCard(
@@ -300,17 +297,35 @@ private fun SegmentedOption(
 }
 
 @Composable
-private fun SettingSwitchRow(
+private fun SettingsActionRow(
+    @DrawableRes icon: Int,
     title: String,
     description: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
+    onClick: () -> Unit,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 11.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+        ) {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .padding(10.dp)
+                    .size(20.dp),
+            )
+        }
         Column(modifier = Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleSmall)
             Text(
@@ -319,35 +334,83 @@ private fun SettingSwitchRow(
                 style = MaterialTheme.typography.bodySmall,
             )
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        if (trailing != null) {
+            trailing()
+        } else {
+            Icon(
+                painter = painterResource(R.drawable.ic_chevron_right),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp),
+            )
+        }
     }
 }
 
 @Composable
-private fun BackgroundSwatch(
-    color: Int,
-    selected: Boolean,
-    onClick: () -> Unit,
+private fun LanguageSettingRow(
+    selected: AppLanguage,
+    onSelected: (AppLanguage) -> Unit,
 ) {
-    val ringColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
-    Box(
-        modifier = Modifier
-            .size(46.dp)
-            .border(BorderStroke(if (selected) 3.dp else 1.dp, ringColor), CircleShape)
-            .padding(5.dp)
-            .background(Color(color), CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (selected) {
-            Box(
-                modifier = Modifier
-                    .size(9.dp)
-                    .background(
-                        if (color == 0xFF17201D.toInt()) Color.White else MaterialTheme.colorScheme.primary,
-                        CircleShape,
-                    ),
-            )
+    var expanded by remember { mutableStateOf(false) }
+    Box(modifier = Modifier.fillMaxWidth()) {
+        SettingsActionRow(
+            icon = R.drawable.ic_language,
+            title = "Change App Language",
+            description = "Set your preferred app language.",
+            onClick = { expanded = true },
+            trailing = {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        selected.displayName,
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                    Icon(
+                        painter = painterResource(R.drawable.ic_expand_more),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            },
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            AppLanguage.entries.forEach { language ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            language.displayName,
+                            fontWeight = if (language == selected) {
+                                FontWeight.Bold
+                            } else {
+                                FontWeight.Normal
+                            },
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        onSelected(language)
+                    },
+                    trailingIcon = if (language == selected) {
+                        {
+                            Text(
+                                "✓",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    } else {
+                        null
+                    },
+                )
+            }
         }
     }
 }
@@ -357,4 +420,12 @@ private val AppTheme.displayName: String
         AppTheme.SYSTEM -> "System"
         AppTheme.LIGHT -> "Light"
         AppTheme.DARK -> "Dark"
+    }
+
+private val AppLanguage.displayName: String
+    get() = when (this) {
+        AppLanguage.SYSTEM -> "System default"
+        AppLanguage.ENGLISH -> "English"
+        AppLanguage.URDU -> "اردو"
+        AppLanguage.ARABIC -> "العربية"
     }
