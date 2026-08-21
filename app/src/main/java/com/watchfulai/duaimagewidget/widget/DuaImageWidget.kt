@@ -3,7 +3,9 @@ package com.watchfulai.duaimagewidget.widget
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -104,6 +106,7 @@ private fun WidgetContent(
     widgetSize: WidgetSizeDp,
     renderedImage: android.graphics.Bitmap?,
 ) {
+    val localizedContext = context.forApplicationLocale()
     val configureIntent = Intent(context, WidgetConfigurationActivity::class.java).apply {
         action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
         putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
@@ -118,7 +121,7 @@ private fun WidgetContent(
     if (renderedImage != null) {
         Image(
             provider = ImageProvider(renderedImage),
-            contentDescription = context.getString(R.string.widget_image_description),
+            contentDescription = localizedContext.getString(R.string.widget_image_description),
             modifier = baseModifier,
             contentScale = ContentScale.FillBounds,
         )
@@ -131,7 +134,7 @@ private fun WidgetContent(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = context.getString(R.string.widget_choose_image),
+                text = localizedContext.getString(R.string.widget_choose_image),
             )
         }
     }
@@ -143,5 +146,14 @@ private fun widgetCornerRadiusPx(context: Context, density: Float): Float =
     } else {
         FALLBACK_WIDGET_CORNER_RADIUS_DP * density
     }
+
+private fun Context.forApplicationLocale(): Context {
+    val locale = AppCompatDelegate.getApplicationLocales()[0] ?: return this
+    val localizedConfiguration = Configuration(resources.configuration).apply {
+        setLocale(locale)
+        setLayoutDirection(locale)
+    }
+    return createConfigurationContext(localizedConfiguration)
+}
 
 private const val FALLBACK_WIDGET_CORNER_RADIUS_DP = 20f

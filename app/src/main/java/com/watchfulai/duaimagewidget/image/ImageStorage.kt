@@ -6,7 +6,9 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
 import android.os.Build
+import androidx.annotation.StringRes
 import androidx.exifinterface.media.ExifInterface
+import com.watchfulai.duaimagewidget.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -16,6 +18,10 @@ data class StoredImage(
     val fileName: String,
     val bitmap: Bitmap,
 )
+
+class ImageStorageException(
+    @StringRes val messageRes: Int,
+) : IllegalStateException()
 
 object ImageStorage {
     private const val DIRECTORY = "dua_images"
@@ -34,10 +40,10 @@ object ImageStorage {
 
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         val boundsStream = resolver.openInputStream(uri)
-            ?: error("The selected image could not be opened")
+            ?: throw ImageStorageException(R.string.error_image_open)
         boundsStream.use { BitmapFactory.decodeStream(it, null, bounds) }
-        require(bounds.outWidth > 0 && bounds.outHeight > 0) {
-            "The selected file is not a supported image"
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+            throw ImageStorageException(R.string.error_image_unsupported)
         }
 
         val decodeOptions = BitmapFactory.Options().apply {
@@ -46,7 +52,7 @@ object ImageStorage {
         }
         val decoded = resolver.openInputStream(uri)?.use {
             BitmapFactory.decodeStream(it, null, decodeOptions)
-        } ?: error("The selected image could not be decoded")
+        } ?: throw ImageStorageException(R.string.error_image_decode)
         val normalized = applyOrientation(decoded, orientation)
 
         val directory = directory(context).apply { mkdirs() }
@@ -59,8 +65,8 @@ object ImageStorage {
                 } else {
                     Bitmap.CompressFormat.PNG
                 }
-                check(normalized.compress(format, 100, output)) {
-                    "The selected image could not be saved"
+                if (!normalized.compress(format, 100, output)) {
+                    throw ImageStorageException(R.string.error_image_save)
                 }
             }
         } catch (throwable: Throwable) {
@@ -87,7 +93,9 @@ object ImageStorage {
     private fun directory(context: Context) = File(context.filesDir, DIRECTORY)
 
     private fun file(context: Context, fileName: String): File {
-        require(fileName == File(fileName).name) { "Invalid image file name" }
+        if (fileName != File(fileName).name) {
+            throw ImageStorageException(R.string.error_invalid_image_name)
+        }
         return File(directory(context), fileName)
     }
 

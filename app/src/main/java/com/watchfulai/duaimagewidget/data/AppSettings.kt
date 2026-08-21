@@ -17,11 +17,21 @@ enum class AppTheme {
     DARK,
 }
 
-enum class AppLanguage {
-    SYSTEM,
-    ENGLISH,
-    URDU,
-    ARABIC,
+enum class AppLanguage(val languageTag: String) {
+    SYSTEM(""),
+    ENGLISH("en"),
+    URDU("ur"),
+    ARABIC("ar");
+
+    companion object {
+        fun fromLanguageTag(languageTag: String?): AppLanguage {
+            val language = languageTag
+                ?.substringBefore('-')
+                ?.substringBefore('_')
+                .orEmpty()
+            return entries.firstOrNull { it.languageTag == language } ?: SYSTEM
+        }
+    }
 }
 
 data class AppSettings(
@@ -57,7 +67,23 @@ class AppSettingsRepository(context: Context) {
     }
 
     suspend fun setLanguage(language: AppLanguage) {
-        appContext.appSettingsDataStore.edit { it[Keys.language] = language.name }
+        appContext.appSettingsDataStore.edit {
+            it[Keys.language] = language.name
+            it[Keys.appCompatLanguageMigrated] = true
+        }
+    }
+
+    suspend fun takeLanguageForAppCompatMigration(): AppLanguage? {
+        var storedLanguage: AppLanguage? = null
+        appContext.appSettingsDataStore.edit { preferences ->
+            if (preferences[Keys.appCompatLanguageMigrated] != true) {
+                storedLanguage = preferences[Keys.language]
+                    ?.let { stored -> AppLanguage.entries.firstOrNull { it.name == stored } }
+                    ?: AppLanguage.SYSTEM
+                preferences[Keys.appCompatLanguageMigrated] = true
+            }
+        }
+        return storedLanguage
     }
 
     suspend fun setDefaultCropMode(mode: CropMode) {
@@ -78,5 +104,6 @@ class AppSettingsRepository(context: Context) {
         val defaultCropMode = stringPreferencesKey("default_crop_mode")
         val autoSaveCropByDefault = booleanPreferencesKey("auto_save_crop_by_default")
         val defaultWidgetBackground = intPreferencesKey("default_widget_background")
+        val appCompatLanguageMigrated = booleanPreferencesKey("appcompat_language_migrated")
     }
 }

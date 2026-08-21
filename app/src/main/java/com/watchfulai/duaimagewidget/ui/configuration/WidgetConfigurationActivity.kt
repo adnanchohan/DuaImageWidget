@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -62,6 +61,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -75,6 +75,7 @@ import com.watchfulai.duaimagewidget.data.CropMode
 import com.watchfulai.duaimagewidget.data.CropTransform
 import com.watchfulai.duaimagewidget.data.DEFAULT_WIDGET_BACKGROUND
 import com.watchfulai.duaimagewidget.image.CropMath
+import com.watchfulai.duaimagewidget.ui.LocaleAwareActivity
 import com.watchfulai.duaimagewidget.ui.components.DuaIconButton
 import com.watchfulai.duaimagewidget.ui.components.DuaPrimaryButton
 import com.watchfulai.duaimagewidget.ui.components.DuaSurfaceCard
@@ -82,7 +83,7 @@ import com.watchfulai.duaimagewidget.ui.theme.DuaImageWidgetTheme
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-class WidgetConfigurationActivity : ComponentActivity() {
+class WidgetConfigurationActivity : LocaleAwareActivity() {
     private var isLeaving = false
     private val appSettingsRepository by lazy { AppSettingsRepository(applicationContext) }
 
@@ -112,7 +113,7 @@ class WidgetConfigurationActivity : ComponentActivity() {
             Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId),
         )
         onBackPressedDispatcher.addCallback(this) {
-            leaveToHomeAfterAutoSave(RESULT_CANCELED)
+            finishAfterAutoSave(RESULT_CANCELED)
         }
         enableEdgeToEdge()
         val widgetSize = currentWidgetSize(appWidgetId)
@@ -131,7 +132,7 @@ class WidgetConfigurationActivity : ComponentActivity() {
                     onResetCrop = editorViewModel::resetCrop,
                     onAutoSaveCropChanged = editorViewModel::setAutoSaveCrop,
                     onDismissError = editorViewModel::dismissError,
-                    onCancel = { leaveToHomeAfterAutoSave(RESULT_CANCELED) },
+                    onCancel = { finishAfterAutoSave(RESULT_CANCELED) },
                     onOpenMainActivity = ::openMainActivityAfterAutoSave,
                     onSave = {
                         lifecycleScope.launch {
@@ -145,23 +146,22 @@ class WidgetConfigurationActivity : ComponentActivity() {
 
     private fun finishSuccessfully() {
         isLeaving = true
-        finishToHome(RESULT_OK)
+        finishWithWidgetResult(RESULT_OK)
     }
 
-    private fun leaveToHomeAfterAutoSave(resultCode: Int) {
+    private fun finishAfterAutoSave(resultCode: Int) {
         if (isLeaving) return
         isLeaving = true
-        setWidgetResult(resultCode)
-        openLauncher()
         lifecycleScope.launch {
             editorViewModel.flushAutoSave()
-            finish()
+            finishWithWidgetResult(resultCode)
         }
     }
 
-    private fun finishToHome(resultCode: Int) {
+    private fun finishWithWidgetResult(resultCode: Int) {
         setWidgetResult(resultCode)
-        openLauncher()
+        // The launcher commits a newly placed widget only when finish() delivers RESULT_OK.
+        // Do not start another activity between setResult() and finish().
         finish()
     }
 
@@ -172,21 +172,13 @@ class WidgetConfigurationActivity : ComponentActivity() {
         )
     }
 
-    private fun openLauncher() {
-        startActivity(
-            Intent(Intent.ACTION_MAIN)
-                .addCategory(Intent.CATEGORY_HOME)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-        )
-    }
-
     private fun openMainActivityAfterAutoSave() {
         if (isLeaving) return
         isLeaving = true
-        openMainActivity()
         lifecycleScope.launch {
             editorViewModel.flushAutoSave()
-            finish()
+            finishWithWidgetResult(RESULT_CANCELED)
+            openMainActivity()
         }
     }
 
@@ -263,9 +255,11 @@ private fun WidgetConfigurationScreen(
                 ) {
                     DuaPrimaryButton(
                         text = when {
-                            state.isSaving -> "Saving…"
-                            state.autoSaveCrop && state.hasPersistedConfiguration -> "Done"
-                            else -> "Save widget"
+                            state.isSaving -> stringResource(R.string.config_saving)
+                            state.autoSaveCrop && state.hasPersistedConfiguration -> {
+                                stringResource(R.string.config_done)
+                            }
+                            else -> stringResource(R.string.config_save_widget)
                         },
                         onClick = onSave,
                         enabled = state.bitmap != null && !state.isSaving && !state.isImporting,
@@ -298,7 +292,7 @@ private fun WidgetConfigurationScreen(
                             modifier = Modifier.size(18.dp),
                         )
                         Spacer(Modifier.width(9.dp))
-                        Text("Open app · add another widget")
+                        Text(stringResource(R.string.config_open_app_add_widget))
                     }
                 }
             }
@@ -320,16 +314,19 @@ private fun WidgetConfigurationScreen(
             ) {
                 DuaIconButton(
                     icon = R.drawable.ic_arrow_back,
-                    contentDescription = "Cancel and return home",
+                    contentDescription = stringResource(R.string.config_cancel_return_home),
                     onClick = onCancel,
                 )
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Frame your dua", style = MaterialTheme.typography.headlineSmall)
+                    Text(
+                        stringResource(R.string.config_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
                     Text(
                         if (selectedCellSize == currentCellSize) {
-                            "Previewing the exact current home-screen size."
+                            stringResource(R.string.config_preview_current_exact)
                         } else {
-                            "Previewing the ${selectedCellSize.label} target size."
+                            stringResource(R.string.config_preview_target, selectedCellSize.label)
                         },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
@@ -346,12 +343,15 @@ private fun WidgetConfigurationScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Live preview", style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        stringResource(R.string.config_live_preview),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
                     Text(
                         if (selectedCellSize == currentCellSize) {
-                            "Current home size"
+                            stringResource(R.string.config_current_home_size)
                         } else {
-                            "Selected ${selectedCellSize.label}"
+                            stringResource(R.string.config_selected_size, selectedCellSize.label)
                         },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.labelSmall,
@@ -374,8 +374,8 @@ private fun WidgetConfigurationScreen(
             }
 
             when {
-                state.isLoading -> LoadingPanel("Loading your widget…")
-                state.isImporting -> LoadingPanel("Preparing your image…")
+                state.isLoading -> LoadingPanel(stringResource(R.string.config_loading_widget))
+                state.isImporting -> LoadingPanel(stringResource(R.string.config_preparing_image))
                 state.bitmap == null -> EmptyImagePanel(onChoose = chooseImage)
                 else -> {
                     Surface(
@@ -399,7 +399,7 @@ private fun WidgetConfigurationScreen(
                             )
                             if (state.cropMode == CropMode.FILL) {
                                 Text(
-                                    "Drag to position · pinch to zoom",
+                                    stringResource(R.string.config_drag_zoom_hint),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     style = MaterialTheme.typography.labelSmall,
                                 )
@@ -421,7 +421,10 @@ private fun WidgetConfigurationScreen(
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
                                 )
-                                Text("Image display", style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    stringResource(R.string.config_image_display),
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
                             }
                             CropModeSelector(
                                 selected = state.cropMode,
@@ -429,9 +432,9 @@ private fun WidgetConfigurationScreen(
                             )
                             Text(
                                 if (state.cropMode == CropMode.FIT) {
-                                    "Fit protects every line and uses your chosen background around the image."
+                                    stringResource(R.string.config_fit_description)
                                 } else {
-                                    "Fill uses the whole frame. Keep important text inside the rounded preview."
+                                    stringResource(R.string.config_fill_description)
                                 },
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.bodySmall,
@@ -439,7 +442,7 @@ private fun WidgetConfigurationScreen(
                             if (state.cropMode == CropMode.FIT) {
                                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                     Text(
-                                        "Fit background",
+                                        stringResource(R.string.config_fit_background),
                                         style = MaterialTheme.typography.titleSmall,
                                     )
                                     Row(
@@ -455,7 +458,7 @@ private fun WidgetConfigurationScreen(
                                         }
                                     }
                                     Text(
-                                        "Choose the color visible around images in Fit mode.",
+                                        stringResource(R.string.config_fit_background_description),
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         style = MaterialTheme.typography.bodySmall,
                                     )
@@ -479,12 +482,15 @@ private fun WidgetConfigurationScreen(
                                 )
                             }
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Auto-save edits", style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    stringResource(R.string.config_auto_save_title),
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
                                 Text(
                                     if (state.hasPersistedConfiguration) {
-                                        "Apply image, crop, zoom and position changes automatically."
+                                        stringResource(R.string.config_auto_save_description)
                                     } else {
-                                        "Auto-save starts after this widget is saved once."
+                                        stringResource(R.string.config_auto_save_unavailable)
                                     },
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     style = MaterialTheme.typography.bodySmall,
@@ -509,7 +515,7 @@ private fun WidgetConfigurationScreen(
                                 .height(50.dp),
                             shape = RoundedCornerShape(16.dp),
                         ) {
-                            Text("Change image")
+                            Text(stringResource(R.string.config_change_image))
                         }
                         OutlinedButton(
                             onClick = onResetCrop,
@@ -519,13 +525,13 @@ private fun WidgetConfigurationScreen(
                                 .height(50.dp),
                             shape = RoundedCornerShape(16.dp),
                         ) {
-                            Text("Reset crop")
+                            Text(stringResource(R.string.config_reset_crop))
                         }
                     }
                 }
             }
 
-            state.errorMessage?.let { message ->
+            state.errorMessageRes?.let { messageRes ->
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
@@ -536,12 +542,12 @@ private fun WidgetConfigurationScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         Text(
-                            text = message,
+                            text = stringResource(messageRes),
                             color = MaterialTheme.colorScheme.onErrorContainer,
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         Text(
-                            text = "Dismiss",
+                            text = stringResource(R.string.dismiss),
                             modifier = Modifier.clickable(onClick = onDismissError),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.labelLarge,
@@ -587,7 +593,11 @@ private fun WidgetSizeStrip(
                 ),
             ) {
                 Text(
-                    text = if (isCurrent) "${size.label} · current" else size.label,
+                    text = if (isCurrent) {
+                        stringResource(R.string.config_size_current, size.label)
+                    } else {
+                        size.label
+                    },
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
                     color = if (isSelected) {
                         MaterialTheme.colorScheme.onPrimary
@@ -633,15 +643,15 @@ private fun ResizeInstruction(
                 verticalArrangement = Arrangement.spacedBy(3.dp),
             ) {
                 Text(
-                    "Previewing ${target.label}",
+                    stringResource(R.string.config_previewing_size, target.label),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
                 Text(
                     if (canReturnHome) {
-                        "Return home and long-press the widget to resize to ${target.label}."
+                        stringResource(R.string.config_resize_instruction, target.label)
                     } else {
-                        "Save this widget first. Then return home and long-press it to resize to ${target.label}."
+                        stringResource(R.string.config_resize_instruction_unsaved, target.label)
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -649,7 +659,7 @@ private fun ResizeInstruction(
             }
             if (canReturnHome) {
                 Text(
-                    text = "Home",
+                    text = stringResource(R.string.home),
                     modifier = Modifier.clickable(onClick = onReturnHome),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
@@ -698,18 +708,18 @@ private fun EmptyImagePanel(onChoose: () -> Unit) {
                 )
             }
             Text(
-                "Choose your dua image",
+                stringResource(R.string.config_choose_image_title),
                 style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
             )
             Text(
-                "Select any small dua image. It is copied to private storage so your widget remains reliable.",
+                stringResource(R.string.config_choose_image_description),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
             DuaPrimaryButton(
-                text = "Choose image",
+                text = stringResource(R.string.config_choose_image),
                 onClick = onChoose,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -730,13 +740,13 @@ private fun CropModeSelector(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         CropModeOption(
-            label = "Fit",
+            label = stringResource(R.string.config_crop_fit),
             selected = selected == CropMode.FIT,
             modifier = Modifier.weight(1f),
             onClick = { onSelected(CropMode.FIT) },
         )
         CropModeOption(
-            label = "Fill & crop",
+            label = stringResource(R.string.config_crop_fill),
             selected = selected == CropMode.FILL,
             modifier = Modifier.weight(1f),
             onClick = { onSelected(CropMode.FILL) },

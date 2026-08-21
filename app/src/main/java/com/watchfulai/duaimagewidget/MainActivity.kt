@@ -6,7 +6,6 @@ import android.content.ComponentName
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
@@ -40,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -54,12 +54,13 @@ import com.watchfulai.duaimagewidget.ui.components.DuaIconButton
 import com.watchfulai.duaimagewidget.ui.components.DuaPill
 import com.watchfulai.duaimagewidget.ui.components.DuaPrimaryButton
 import com.watchfulai.duaimagewidget.ui.components.DuaSurfaceCard
+import com.watchfulai.duaimagewidget.ui.LocaleAwareActivity
 import com.watchfulai.duaimagewidget.ui.settings.SettingsActivity
 import com.watchfulai.duaimagewidget.ui.theme.DuaImageWidgetTheme
 import com.watchfulai.duaimagewidget.ui.theme.Gold300
 import com.watchfulai.duaimagewidget.widget.DuaImageWidgetReceiver
 
-class MainActivity : ComponentActivity() {
+class MainActivity : LocaleAwareActivity() {
     private val settingsRepository by lazy { AppSettingsRepository(applicationContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,6 +70,8 @@ class MainActivity : ComponentActivity() {
             val settings by settingsRepository.settings.collectAsState(initial = AppSettings())
             DuaImageWidgetTheme(appTheme = settings.theme) {
                 var status by remember { mutableStateOf<String?>(null) }
+                val pinRequestedMessage = stringResource(R.string.status_widget_pin_requested)
+                val pinFallbackMessage = stringResource(R.string.status_widget_pin_fallback)
                 HomeScreen(
                     status = status,
                     onSettings = {
@@ -76,9 +79,9 @@ class MainActivity : ComponentActivity() {
                     },
                     onAddWidget = {
                         status = if (requestWidgetPin()) {
-                            "Choose a place on your home screen, then select your dua image."
+                            pinRequestedMessage
                         } else {
-                            "Open the home-screen widget picker and select Dua Image Widget."
+                            pinFallbackMessage
                         }
                     },
                 )
@@ -135,7 +138,7 @@ private fun HomeScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     DuaPrimaryButton(
-                        text = "Add widget to home screen",
+                        text = stringResource(R.string.home_add_widget),
                         onClick = onAddWidget,
                         modifier = Modifier.fillMaxWidth(),
                         /*leading = {
@@ -149,7 +152,7 @@ private fun HomeScreen(
                         },*/
                     )
                     Text(
-                        text = "WatchFulAI Apps",
+                        text = stringResource(R.string.watchfulai_apps),
                         modifier = Modifier.padding(top = 9.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.labelSmall,
@@ -178,10 +181,13 @@ private fun HomeScreen(
                         .padding(end = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    DuaPill(text = "A quiet reminder, always close")
+                    DuaPill(text = stringResource(R.string.home_reminder_pill))
+                    val heroPrefix = stringResource(R.string.home_hero_prefix)
+                    val heroDua = stringResource(R.string.home_hero_dua)
+                    val heroSuffix = stringResource(R.string.home_hero_suffix)
                     Text(
                         text = buildAnnotatedString {
-                            append("Your ")
+                            append(heroPrefix)
                             withStyle(
                                 SpanStyle(
                                     brush = Brush.linearGradient(
@@ -197,22 +203,22 @@ private fun HomeScreen(
                                     fontWeight = FontWeight.Black,
                                 ),
                             ) {
-                                append("دُعَاء")
+                                append(heroDua)
                             }
-                            append(",\none glance away.")
+                            append(heroSuffix)
                         },
                         style = MaterialTheme.typography.headlineLarge,
                         color = MaterialTheme.colorScheme.onBackground,
                     )
                     Text(
-                        text = "Turn any dua image into a beautiful, perfectly framed home-screen widget.",
+                        text = stringResource(R.string.home_description),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 DuaIconButton(
                     icon = R.drawable.ic_settings,
-                    contentDescription = "Open settings",
+                    contentDescription = stringResource(R.string.open_settings),
                     onClick = onSettings,
                 )
             }
@@ -250,10 +256,25 @@ private fun HomeScreen(
                     modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
-                    Text("Beautiful in three steps", style = MaterialTheme.typography.titleLarge)
-                    HomeStep("01", "Add the widget", "Choose any available size on your home screen.")
-                    HomeStep("02", "Pick your image", "Use the system photo picker—your library stays private.")
-                    HomeStep("03", "Frame it perfectly", "Fit every line or fill, drag and pinch to crop.")
+                    Text(
+                        stringResource(R.string.home_steps_title),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    HomeStep(
+                        "01",
+                        stringResource(R.string.home_step_add_title),
+                        stringResource(R.string.home_step_add_description),
+                    )
+                    HomeStep(
+                        "02",
+                        stringResource(R.string.home_step_pick_title),
+                        stringResource(R.string.home_step_pick_description),
+                    )
+                    HomeStep(
+                        "03",
+                        stringResource(R.string.home_step_frame_title),
+                        stringResource(R.string.home_step_frame_description),
+                    )
                 }
             }
 
@@ -318,14 +339,14 @@ private fun WidgetShowcase() {
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    text = "رَبِّ زِدْنِي عِلْمًا",
+                    text = stringResource(R.string.home_showcase_dua),
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Medium,
                 )
                 Text(
-                    text = "My Lord, increase me in knowledge.",
+                    text = stringResource(R.string.home_showcase_translation),
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
@@ -333,7 +354,7 @@ private fun WidgetShowcase() {
             }
         }
         DuaPill(
-            text = "Fits every widget size",
+            text = stringResource(R.string.home_showcase_size_pill),
             modifier = Modifier.align(Alignment.BottomCenter),
         )
     }

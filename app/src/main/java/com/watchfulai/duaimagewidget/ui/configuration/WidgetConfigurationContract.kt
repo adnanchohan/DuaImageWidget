@@ -15,7 +15,7 @@ internal data class WidgetCellSize(
     val rows: Int,
 ) {
     val label: String
-        get() = "$columns × $rows"
+        get() = "\u2066$columns × $rows\u2069"
 }
 
 internal fun WidgetSizeDp.toWidgetCellSize(): WidgetCellSize = WidgetCellSize(

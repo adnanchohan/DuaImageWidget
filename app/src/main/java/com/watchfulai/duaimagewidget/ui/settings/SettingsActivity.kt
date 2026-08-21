@@ -1,11 +1,13 @@
 package com.watchfulai.duaimagewidget.ui.settings
 
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,9 +43,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.annotation.DrawableRes
+import androidx.core.os.LocaleListCompat
 import com.watchfulai.duaimagewidget.R
 import com.watchfulai.duaimagewidget.data.AppLanguage
 import com.watchfulai.duaimagewidget.data.AppSettings
@@ -52,10 +56,12 @@ import com.watchfulai.duaimagewidget.data.AppTheme
 import com.watchfulai.duaimagewidget.ui.components.BrandMark
 import com.watchfulai.duaimagewidget.ui.components.DuaIconButton
 import com.watchfulai.duaimagewidget.ui.components.DuaSurfaceCard
+import com.watchfulai.duaimagewidget.ui.LocaleAwareActivity
 import com.watchfulai.duaimagewidget.ui.theme.DuaImageWidgetTheme
+import com.watchfulai.duaimagewidget.widget.DuaImageWidgetReceiver
 import kotlinx.coroutines.launch
 
-class SettingsActivity : ComponentActivity() {
+class SettingsActivity : LocaleAwareActivity() {
     private val repository by lazy { AppSettingsRepository(applicationContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,19 +70,41 @@ class SettingsActivity : ComponentActivity() {
         setContent {
             val settings by repository.settings.collectAsState(initial = AppSettings())
             val scope = rememberCoroutineScope()
+            val selectedLanguage = AppLanguage.fromLanguageTag(
+                AppCompatDelegate.getApplicationLocales()[0]?.toLanguageTag(),
+            )
             DuaImageWidgetTheme(appTheme = settings.theme) {
                 SettingsScreen(
                     settings = settings,
+                    selectedLanguage = selectedLanguage,
                     onBack = ::finish,
                     onThemeChanged = { scope.launch { repository.setTheme(it) } },
                     onMoreApps = ::openMoreApps,
                     onShareApp = ::shareApp,
                     onLanguageChanged = { language ->
-                        scope.launch { repository.setLanguage(language) }
+                        scope.launch {
+                            repository.setLanguage(language)
+                            AppCompatDelegate.setApplicationLocales(language.toLocaleList())
+                            requestWidgetLocaleRefresh()
+                        }
                     },
                 )
             }
         }
+    }
+
+    private fun requestWidgetLocaleRefresh() {
+        val receiver = ComponentName(applicationContext, DuaImageWidgetReceiver::class.java)
+        val widgetIds = AppWidgetManager.getInstance(applicationContext)
+            .getAppWidgetIds(receiver)
+        if (widgetIds.isEmpty()) return
+
+        applicationContext.sendBroadcast(
+            Intent(applicationContext, DuaImageWidgetReceiver::class.java).apply {
+                action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
+            },
+        )
     }
 
     private fun openMoreApps() {
@@ -96,19 +124,20 @@ class SettingsActivity : ComponentActivity() {
         val storeUrl = "https://play.google.com/store/apps/details?id=$packageName"
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            putExtra(Intent.EXTRA_SUBJECT, "Dua Image Widget")
+            putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name))
             putExtra(
                 Intent.EXTRA_TEXT,
-                "Create beautifully framed dua widgets for your home screen. $storeUrl",
+                getString(R.string.share_message, storeUrl),
             )
         }
-        startActivity(Intent.createChooser(shareIntent, "Share Dua Image Widget"))
+        startActivity(Intent.createChooser(shareIntent, getString(R.string.share_chooser_title)))
     }
 }
 
 @Composable
 private fun SettingsScreen(
     settings: AppSettings,
+    selectedLanguage: AppLanguage,
     onBack: () -> Unit,
     onThemeChanged: (AppTheme) -> Unit,
     onMoreApps: () -> Unit,
@@ -132,13 +161,16 @@ private fun SettingsScreen(
             ) {
                 DuaIconButton(
                     icon = R.drawable.ic_arrow_back,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.back),
                     onClick = onBack,
                 )
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Settings", style = MaterialTheme.typography.headlineSmall)
                     Text(
-                        "Personalize the app and stay connected.",
+                        stringResource(R.string.settings_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                    Text(
+                        stringResource(R.string.settings_subtitle),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -147,13 +179,13 @@ private fun SettingsScreen(
             }
 
             SettingsSection(
-                title = "Appearance",
-                description = "Choose how the app looks on this device.",
+                title = stringResource(R.string.settings_appearance_title),
+                description = stringResource(R.string.settings_appearance_description),
             ) {
                 SegmentedSelector {
                     AppTheme.entries.forEach { theme ->
                         SegmentedOption(
-                            label = theme.displayName,
+                            label = theme.displayName(),
                             selected = settings.theme == theme,
                             modifier = Modifier.weight(1f),
                             onClick = { onThemeChanged(theme) },
@@ -163,23 +195,23 @@ private fun SettingsScreen(
             }
 
             SettingsSection(
-                title = "More",
-                description = "Discover more, share the app and choose your language.",
+                title = stringResource(R.string.settings_more_title),
+                description = stringResource(R.string.settings_more_description),
             ) {
                 SettingsActionRow(
                     icon = R.drawable.ic_apps,
-                    title = "More Apps",
-                    description = "Discover more apps from WatchFulAI.",
+                    title = stringResource(R.string.settings_more_apps_title),
+                    description = stringResource(R.string.settings_more_apps_description),
                     onClick = onMoreApps,
                 )
                 SettingsActionRow(
                     icon = R.drawable.ic_share,
-                    title = "Share This App",
-                    description = "Recommend Dua Image Widget to friends and family.",
+                    title = stringResource(R.string.settings_share_title),
+                    description = stringResource(R.string.settings_share_description),
                     onClick = onShareApp,
                 )
                 LanguageSettingRow(
-                    selected = settings.language,
+                    selected = selectedLanguage,
                     onSelected = onLanguageChanged,
                 )
             }
@@ -202,9 +234,12 @@ private fun SettingsScreen(
                         )
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Private on your device", style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "Dua images are never uploaded and the system photo picker keeps your library private.",
+                            stringResource(R.string.settings_private_title),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Text(
+                            stringResource(R.string.settings_private_description),
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             style = MaterialTheme.typography.bodySmall,
                         )
@@ -218,12 +253,12 @@ private fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    "Dua Image Widget",
+                    stringResource(R.string.app_name),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelMedium,
                 )
                 Text(
-                    "Version 1.0",
+                    stringResource(R.string.settings_version),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelSmall,
                 )
@@ -356,8 +391,8 @@ private fun LanguageSettingRow(
     Box(modifier = Modifier.fillMaxWidth()) {
         SettingsActionRow(
             icon = R.drawable.ic_language,
-            title = "Change App Language",
-            description = "Set your preferred app language.",
+            title = stringResource(R.string.settings_language_title),
+            description = stringResource(R.string.settings_language_description),
             onClick = { expanded = true },
             trailing = {
                 Row(
@@ -365,7 +400,7 @@ private fun LanguageSettingRow(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        selected.displayName,
+                        selected.displayName(),
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.labelMedium,
                     )
@@ -386,7 +421,7 @@ private fun LanguageSettingRow(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            language.displayName,
+                            language.displayName(),
                             fontWeight = if (language == selected) {
                                 FontWeight.Bold
                             } else {
@@ -415,17 +450,24 @@ private fun LanguageSettingRow(
     }
 }
 
-private val AppTheme.displayName: String
-    get() = when (this) {
-        AppTheme.SYSTEM -> "System"
-        AppTheme.LIGHT -> "Light"
-        AppTheme.DARK -> "Dark"
+@Composable
+private fun AppTheme.displayName(): String = when (this) {
+        AppTheme.SYSTEM -> stringResource(R.string.theme_system)
+        AppTheme.LIGHT -> stringResource(R.string.theme_light)
+        AppTheme.DARK -> stringResource(R.string.theme_dark)
     }
 
-private val AppLanguage.displayName: String
-    get() = when (this) {
-        AppLanguage.SYSTEM -> "System default"
-        AppLanguage.ENGLISH -> "English"
-        AppLanguage.URDU -> "اردو"
-        AppLanguage.ARABIC -> "العربية"
+@Composable
+private fun AppLanguage.displayName(): String = when (this) {
+        AppLanguage.SYSTEM -> stringResource(R.string.language_system_default)
+        AppLanguage.ENGLISH -> stringResource(R.string.language_english)
+        AppLanguage.URDU -> stringResource(R.string.language_urdu)
+        AppLanguage.ARABIC -> stringResource(R.string.language_arabic)
+    }
+
+private fun AppLanguage.toLocaleList(): LocaleListCompat =
+    if (this == AppLanguage.SYSTEM) {
+        LocaleListCompat.getEmptyLocaleList()
+    } else {
+        LocaleListCompat.forLanguageTags(languageTag)
     }

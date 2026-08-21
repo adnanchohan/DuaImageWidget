@@ -3,10 +3,12 @@ package com.watchfulai.duaimagewidget.ui.configuration
 import android.app.Application
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.watchfulai.duaimagewidget.R
 import com.watchfulai.duaimagewidget.data.CropMode
 import com.watchfulai.duaimagewidget.data.CropTransform
 import com.watchfulai.duaimagewidget.data.DEFAULT_WIDGET_BACKGROUND
@@ -14,6 +16,7 @@ import com.watchfulai.duaimagewidget.data.AppSettingsRepository
 import com.watchfulai.duaimagewidget.data.WidgetConfig
 import com.watchfulai.duaimagewidget.data.WidgetConfigRepository
 import com.watchfulai.duaimagewidget.image.ImageStorage
+import com.watchfulai.duaimagewidget.image.ImageStorageException
 import com.watchfulai.duaimagewidget.widget.DuaImageWidget
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -40,7 +43,7 @@ data class WidgetEditorUiState(
     val backgroundColor: Int = DEFAULT_WIDGET_BACKGROUND,
     val autoSaveCrop: Boolean = false,
     val hasPersistedConfiguration: Boolean = false,
-    val errorMessage: String? = null,
+    @StringRes val errorMessageRes: Int? = null,
 )
 
 class WidgetConfigurationViewModel(
@@ -74,8 +77,8 @@ class WidgetConfigurationViewModel(
                 backgroundColor = existing?.backgroundColor ?: defaults.defaultWidgetBackground,
                 autoSaveCrop = existing?.autoSaveCrop ?: defaults.autoSaveCropByDefault,
                 hasPersistedConfiguration = existing != null,
-                errorMessage = if (existing != null && bitmap == null) {
-                    "The previous image is no longer available. Please choose it again."
+                errorMessageRes = if (existing != null && bitmap == null) {
+                    R.string.error_previous_image_unavailable
                 } else {
                     null
                 },
@@ -86,7 +89,7 @@ class WidgetConfigurationViewModel(
     fun importImage(uri: Uri) {
         if (_uiState.value.isImporting) return
         viewModelScope.launch {
-            _uiState.update { it.copy(isImporting = true, errorMessage = null) }
+            _uiState.update { it.copy(isImporting = true, errorMessageRes = null) }
             runCatching { ImageStorage.import(getApplication(), uri) }
                 .onSuccess { stored ->
                     pendingImageFileName?.let { ImageStorage.delete(getApplication(), it) }
@@ -105,7 +108,7 @@ class WidgetConfigurationViewModel(
                     _uiState.update {
                         it.copy(
                             isImporting = false,
-                            errorMessage = throwable.message ?: "The image could not be imported.",
+                            errorMessageRes = throwable.localizedImageImportError(),
                         )
                     }
                 }
@@ -135,14 +138,14 @@ class WidgetConfigurationViewModel(
 
     fun setAutoSaveCrop(enabled: Boolean) {
         if (_uiState.value.autoSaveCrop == enabled) return
-        _uiState.update { it.copy(autoSaveCrop = enabled, errorMessage = null) }
+        _uiState.update { it.copy(autoSaveCrop = enabled, errorMessageRes = null) }
         if (_uiState.value.hasPersistedConfiguration) {
             scheduleAutoSave(immediate = true, requireAutoSaveEnabled = false)
         }
     }
 
     fun dismissError() {
-        _uiState.update { it.copy(errorMessage = null) }
+        _uiState.update { it.copy(errorMessageRes = null) }
     }
 
     suspend fun save(): Boolean {
@@ -152,7 +155,7 @@ class WidgetConfigurationViewModel(
         if (state.imageFileName == null) return false
         if (state.isSaving) return false
 
-        _uiState.update { it.copy(isSaving = true, errorMessage = null) }
+        _uiState.update { it.copy(isSaving = true, errorMessageRes = null) }
         return try {
             persist(state)
             persistedAutoSaveRevision = autoSaveRevision
@@ -167,7 +170,7 @@ class WidgetConfigurationViewModel(
             _uiState.update {
                 it.copy(
                     isSaving = false,
-                    errorMessage = throwable.message ?: "The widget could not be saved.",
+                    errorMessageRes = R.string.error_widget_save,
                 )
             }
             false
@@ -199,7 +202,7 @@ class WidgetConfigurationViewModel(
             } catch (throwable: Throwable) {
                 _uiState.update {
                     it.copy(
-                        errorMessage = throwable.message ?: "Auto-save could not update the widget.",
+                        errorMessageRes = R.string.error_auto_save_update,
                     )
                 }
             }
@@ -222,7 +225,7 @@ class WidgetConfigurationViewModel(
         } catch (throwable: Throwable) {
             _uiState.update {
                 it.copy(
-                    errorMessage = throwable.message ?: "Auto-save could not update the widget.",
+                    errorMessageRes = R.string.error_auto_save_update,
                 )
             }
         }
@@ -271,3 +274,7 @@ class WidgetConfigurationViewModel(
         const val AUTO_SAVE_DEBOUNCE_MILLIS = 350L
     }
 }
+
+@StringRes
+private fun Throwable.localizedImageImportError(): Int =
+    (this as? ImageStorageException)?.messageRes ?: R.string.error_image_import
