@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="prayer_widget_location_text_size">12sp</dimen>
+    <dimen name="prayer_widget_hijri_text_size">12sp</dimen>
+    <dimen name="prayer_widget_sunrise_text_size">14sp</dimen>
+    <dimen name="prayer_widget_prayer_name_text_size">11sp</dimen>
+    <dimen name="prayer_widget_prayer_time_text_size">14sp</dimen>
+    <dimen name="prayer_widget_next_label_text_size">12sp</dimen>
+    <dimen name="prayer_widget_countdown_text_size">18sp</dimen>
+    <dimen name="prayer_widget_status_title_text_size">16sp</dimen>
+    <dimen name="prayer_widget_status_message_text_size">12sp</dimen>
+</resources>

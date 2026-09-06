@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -52,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.watchfulai.duaimagewidget.data.AppSettings
 import com.watchfulai.duaimagewidget.data.AppSettingsRepository
+import com.watchfulai.duaimagewidget.prayer.PrayerTimesWidgetProvider
 import com.watchfulai.duaimagewidget.ui.components.BrandMark
 import com.watchfulai.duaimagewidget.ui.components.DuaIconButton
 import com.watchfulai.duaimagewidget.ui.components.DuaPill
@@ -77,6 +79,12 @@ class MainActivity : LocaleAwareActivity() {
                 var status by remember { mutableStateOf<String?>(null) }
                 val pinRequestedMessage = stringResource(R.string.status_widget_pin_requested)
                 val pinFallbackMessage = stringResource(R.string.status_widget_pin_fallback)
+                val prayerPinRequestedMessage = stringResource(
+                    R.string.status_prayer_widget_pin_requested,
+                )
+                val prayerPinFallbackMessage = stringResource(
+                    R.string.status_prayer_widget_pin_fallback,
+                )
                 HomeScreen(
                     status = status,
                     activeWidgetCount = activeWidgetCount,
@@ -86,8 +94,29 @@ class MainActivity : LocaleAwareActivity() {
                     onYourWidgets = {
                         startActivity(Intent(this, YourWidgetsActivity::class.java))
                     },
-                    onAddWidget = {
-                        status = if (requestWidgetPin()) {
+                    onAddPrayerWidget = {
+                        status = if (
+                            requestWidgetPin(
+                                providerClass = PrayerTimesWidgetProvider::class.java,
+                                configurationClass = com.watchfulai.duaimagewidget.ui.prayer
+                                    .PrayerWidgetConfigurationActivity::class.java,
+                                requestCode = PIN_PRAYER_WIDGET_REQUEST_CODE,
+                            )
+                        ) {
+                            prayerPinRequestedMessage
+                        } else {
+                            prayerPinFallbackMessage
+                        }
+                    },
+                    onAddDuaWidget = {
+                        status = if (
+                            requestWidgetPin(
+                                providerClass = DuaImageWidgetReceiver::class.java,
+                                configurationClass = com.watchfulai.duaimagewidget.ui.configuration
+                                    .WidgetConfigurationActivity::class.java,
+                                requestCode = PIN_DUA_WIDGET_REQUEST_CODE,
+                            )
+                        ) {
                             pinRequestedMessage
                         } else {
                             pinFallbackMessage
@@ -105,14 +134,15 @@ class MainActivity : LocaleAwareActivity() {
         ).size
     }
 
-    private fun requestWidgetPin(): Boolean {
+    private fun requestWidgetPin(
+        providerClass: Class<*>,
+        configurationClass: Class<*>,
+        requestCode: Int,
+    ): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
         val manager = AppWidgetManager.getInstance(this)
         if (!manager.isRequestPinAppWidgetSupported) return false
-        val configureIntent = Intent(
-            this,
-            com.watchfulai.duaimagewidget.ui.configuration.WidgetConfigurationActivity::class.java,
-        ).apply {
+        val configureIntent = Intent(this, configurationClass).apply {
             action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
@@ -120,19 +150,20 @@ class MainActivity : LocaleAwareActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
         val successCallback = PendingIntent.getActivity(
             this,
-            PIN_WIDGET_REQUEST_CODE,
+            requestCode,
             configureIntent,
             pendingIntentFlags,
         )
         return manager.requestPinAppWidget(
-            ComponentName(this, DuaImageWidgetReceiver::class.java),
+            ComponentName(this, providerClass),
             null,
             successCallback,
         )
     }
 
     private companion object {
-        const val PIN_WIDGET_REQUEST_CODE = 1001
+        const val PIN_DUA_WIDGET_REQUEST_CODE = 1001
+        const val PIN_PRAYER_WIDGET_REQUEST_CODE = 1002
     }
 }
 
@@ -142,7 +173,8 @@ private fun HomeScreen(
     activeWidgetCount: Int,
     onSettings: () -> Unit,
     onYourWidgets: () -> Unit,
-    onAddWidget: () -> Unit,
+    onAddPrayerWidget: () -> Unit,
+    onAddDuaWidget: () -> Unit,
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -156,19 +188,17 @@ private fun HomeScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     DuaPrimaryButton(
-                        text = stringResource(R.string.home_add_widget),
-                        onClick = onAddWidget,
+                        text = stringResource(R.string.home_add_prayer_widget),
+                        onClick = onAddPrayerWidget,
                         modifier = Modifier.fillMaxWidth(),
-                        /*leading = {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_add),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .padding(end = 10.dp)
-                                    .size(20.dp),
-                            )
-                        },*/
                     )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = onAddDuaWidget,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.home_add_widget))
+                    }
                     Text(
                         text = stringResource(R.string.watchfulai_apps),
                         modifier = Modifier.padding(top = 9.dp),

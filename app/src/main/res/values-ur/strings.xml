@@ -122,4 +122,45 @@
     <string name="error_image_decode">منتخب تصویر پڑھی نہیں جا سکی۔</string>
     <string name="error_image_save">منتخب تصویر محفوظ نہیں کی جا سکی۔</string>
     <string name="error_invalid_image_name">تصویر کی فائل کا نام درست نہیں ہے۔</string>
+
+    <string name="home_add_prayer_widget">نماز کے اوقات کا ویجٹ شامل کریں</string>
+    <string name="status_prayer_widget_pin_requested">ہوم اسکرین پر جگہ منتخب کریں، پھر نماز کا مقام پکا کریں۔</string>
+    <string name="status_prayer_widget_pin_fallback">ہوم اسکرین ویجٹ پکر کھولیں اور Prayer Times منتخب کریں۔</string>
+    <string name="prayer_widget_description">براہِ راست نماز کے اوقات، اگلی نماز کی الٹی گنتی، ہجری تاریخ اور طلوعِ آفتاب</string>
+    <string name="prayer_fajr">فجر</string>
+    <string name="prayer_dhuhr">ظہر</string>
+    <string name="prayer_asr">عصر</string>
+    <string name="prayer_maghrib">مغرب</string>
+    <string name="prayer_isha">عشاء</string>
+    <string name="prayer_sunrise_value">طلوع %1$s</string>
+    <string name="prayer_next_starts_in">اگلی %1$s میں</string>
+    <string name="prayer_hijri_date_format">%1$d %2$s %3$d ھ</string>
+    <string name="prayer_setup_title">نماز کا مقام مقرر کریں</string>
+    <string name="prayer_setup_message">اپنا موجودہ مقام استعمال کرنے کے لیے ٹیپ کریں۔</string>
+    <string name="prayer_update_failed">نماز کے اوقات دستیاب نہیں</string>
+    <string name="prayer_update_failed_message">%1$s کے لیے دوبارہ کوشش کرنے کو ٹیپ کریں۔</string>
+    <string name="prayer_config_title">نماز کے اوقات کا ویجٹ</string>
+    <string name="prayer_config_subtitle">AlAdhan سے درست مقامی حساب۔</string>
+    <string name="prayer_location_title">نماز کا مقام</string>
+    <string name="prayer_no_location">کوئی مقام منتخب نہیں</string>
+    <string name="prayer_use_current_location">میرا موجودہ مقام استعمال کریں</string>
+    <string name="prayer_finding_location">آپ کا مقام تلاش ہو رہا ہے…</string>
+    <string name="prayer_location_unavailable">آپ کا مقام معلوم نہیں ہو سکا۔ لوکیشن آن کر کے دوبارہ کوشش کریں۔</string>
+    <string name="prayer_location_permission_denied">آپ کے علاقے کے نماز کے اوقات کے لیے لوکیشن اجازت ضروری ہے۔</string>
+    <string name="prayer_choose_location_first">ویجٹ محفوظ کرنے سے پہلے مقام منتخب کریں۔</string>
+    <string name="prayer_calculation_title">حساب کی ترتیبات</string>
+    <string name="prayer_calculation_description">خودکار طریقہ آپ کے مقام کے لیے AlAdhan کی منتخب کردہ اتھارٹی استعمال کرتا ہے۔ اپنی مسجد سے ملانے کے لیے طریقہ خود منتخب کریں۔</string>
+    <string name="prayer_asr_school_title">عصر کا فقہی طریقہ</string>
+    <string name="prayer_school_standard">معیاری</string>
+    <string name="prayer_school_hanafi">حنفی</string>
+    <string name="prayer_accuracy_notice">یہ نماز کے حساب شدہ ابتدائی اوقات ہیں، مسجد کی اقامت کے اوقات نہیں۔ مقامی مسجد یا حکومتی جدول میں چند منٹ کا فرق ہو سکتا ہے۔</string>
+    <string name="prayer_save_widget">نماز ویجٹ محفوظ کریں</string>
+    <string name="prayer_loading_times">نماز کے اوقات لوڈ ہو رہے ہیں…</string>
+    <string name="prayer_api_error">AlAdhan شیڈول لوڈ نہیں کر سکا۔ کنکشن چیک کر کے دوبارہ کوشش کریں۔</string>
+
+    <string-array name="hijri_month_names">
+        <item>محرم</item><item>صفر</item><item>ربیع الاول</item><item>ربیع الثانی</item>
+        <item>جمادی الاول</item><item>جمادی الثانی</item><item>رجب</item><item>شعبان</item>
+        <item>رمضان</item><item>شوال</item><item>ذوالقعدہ</item><item>ذوالحجہ</item>
+    </string-array>
 </resources>

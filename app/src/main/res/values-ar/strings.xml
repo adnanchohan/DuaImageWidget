@@ -126,4 +126,45 @@
     <string name="error_image_decode">تعذر قراءة الصورة المحددة.</string>
     <string name="error_image_save">تعذر حفظ الصورة المحددة.</string>
     <string name="error_invalid_image_name">اسم ملف الصورة غير صالح.</string>
+
+    <string name="home_add_prayer_widget">إضافة أداة مواقيت الصلاة</string>
+    <string name="status_prayer_widget_pin_requested">اختر مكانًا على الشاشة الرئيسية، ثم أكّد موقع الصلاة.</string>
+    <string name="status_prayer_widget_pin_fallback">افتح منتقي أدوات الشاشة الرئيسية واختر مواقيت الصلاة.</string>
+    <string name="prayer_widget_description">مواقيت الصلاة المباشرة والعد التنازلي والتاريخ الهجري والشروق</string>
+    <string name="prayer_fajr">الفجر</string>
+    <string name="prayer_dhuhr">الظهر</string>
+    <string name="prayer_asr">العصر</string>
+    <string name="prayer_maghrib">المغرب</string>
+    <string name="prayer_isha">العشاء</string>
+    <string name="prayer_sunrise_value">الشروق %1$s</string>
+    <string name="prayer_next_starts_in">%1$s القادمة خلال</string>
+    <string name="prayer_hijri_date_format">%1$d %2$s %3$d هـ</string>
+    <string name="prayer_setup_title">حدّد موقع الصلاة</string>
+    <string name="prayer_setup_message">انقر لاستخدام موقعك الحالي.</string>
+    <string name="prayer_update_failed">مواقيت الصلاة غير متاحة</string>
+    <string name="prayer_update_failed_message">انقر لإعادة المحاولة في %1$s.</string>
+    <string name="prayer_config_title">أداة مواقيت الصلاة</string>
+    <string name="prayer_config_subtitle">حسابات محلية دقيقة بدعم من AlAdhan.</string>
+    <string name="prayer_location_title">موقع الصلاة</string>
+    <string name="prayer_no_location">لم يُحدّد موقع</string>
+    <string name="prayer_use_current_location">استخدام موقعي الحالي</string>
+    <string name="prayer_finding_location">جارٍ تحديد موقعك…</string>
+    <string name="prayer_location_unavailable">تعذر تحديد موقعك. فعّل الموقع وحاول مرة أخرى.</string>
+    <string name="prayer_location_permission_denied">يلزم إذن الموقع لحساب مواقيت الصلاة لمنطقتك.</string>
+    <string name="prayer_choose_location_first">حدّد موقعك قبل حفظ الأداة.</string>
+    <string name="prayer_calculation_title">إعدادات الحساب</string>
+    <string name="prayer_calculation_description">يستخدم الوضع التلقائي الجهة التي يختارها AlAdhan لإحداثياتك. اختر طريقة يدويًا لتطابق مسجدك أو الجهة المحلية.</string>
+    <string name="prayer_asr_school_title">طريقة حساب العصر</string>
+    <string name="prayer_school_standard">قياسي</string>
+    <string name="prayer_school_hanafi">حنفي</string>
+    <string name="prayer_accuracy_notice">هذه بدايات أوقات الصلاة المحسوبة وليست أوقات الإقامة. قد تضبط المساجد أو الجهات الرسمية الوقت بضع دقائق.</string>
+    <string name="prayer_save_widget">حفظ أداة الصلاة</string>
+    <string name="prayer_loading_times">جارٍ تحميل المواقيت…</string>
+    <string name="prayer_api_error">تعذر على AlAdhan تحميل الجدول. تحقق من الاتصال وحاول مرة أخرى.</string>
+
+    <string-array name="hijri_month_names">
+        <item>محرم</item><item>صفر</item><item>ربيع الأول</item><item>ربيع الآخر</item>
+        <item>جمادى الأولى</item><item>جمادى الآخرة</item><item>رجب</item><item>شعبان</item>
+        <item>رمضان</item><item>شوال</item><item>ذو القعدة</item><item>ذو الحجة</item>
+    </string-array>
 </resources>

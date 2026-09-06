@@ -9,7 +9,10 @@
 
     <string name="status_widget_pin_requested">Choose a place on your home screen, then select your dua image.</string>
     <string name="status_widget_pin_fallback">Open the home-screen widget picker and select Dua Image Widget.</string>
-    <string name="home_add_widget">Add widget to home screen</string>
+    <string name="home_add_widget">Add dua image widget</string>
+    <string name="home_add_prayer_widget">Add prayer-times widget</string>
+    <string name="status_prayer_widget_pin_requested">Choose a place on your home screen, then confirm your prayer location.</string>
+    <string name="status_prayer_widget_pin_fallback">Open the home-screen widget picker and select Prayer Times.</string>
     <string name="watchfulai_apps">WatchFulAI Apps</string>
     <string name="home_reminder_pill">A quiet reminder, always close</string>
     <string name="home_hero_prefix">Your\u0020</string>
@@ -123,4 +126,52 @@
     <string name="error_image_decode">The selected image could not be decoded.</string>
     <string name="error_image_save">The selected image could not be saved.</string>
     <string name="error_invalid_image_name">Invalid image file name.</string>
+
+    <string name="prayer_widget_description">Live prayer times, next-prayer countdown, Hijri date and sunrise</string>
+    <string name="prayer_fajr">Fajr</string>
+    <string name="prayer_dhuhr">Dhuhr</string>
+    <string name="prayer_asr">Asr</string>
+    <string name="prayer_maghrib">Maghrib</string>
+    <string name="prayer_isha">Isha</string>
+    <string name="prayer_sunrise_value">Sunrise %1$s</string>
+    <string name="prayer_next_starts_in">Next %1$s in</string>
+    <string name="prayer_hijri_date_format">%1$d %2$s %3$d AH</string>
+    <string name="prayer_setup_title">Set your prayer location</string>
+    <string name="prayer_setup_message">Tap to use your current location.</string>
+    <string name="prayer_update_failed">Prayer times unavailable</string>
+    <string name="prayer_update_failed_message">Tap to retry for %1$s.</string>
+
+    <string name="prayer_config_title">Prayer Times widget</string>
+    <string name="prayer_config_subtitle">Accurate local calculations powered by AlAdhan.</string>
+    <string name="prayer_location_title">Prayer location</string>
+    <string name="prayer_no_location">No location selected</string>
+    <string name="prayer_use_current_location">Use my current location</string>
+    <string name="prayer_finding_location">Finding your location…</string>
+    <string name="prayer_location_unavailable">Your location could not be determined. Turn on Location and try again.</string>
+    <string name="prayer_location_permission_denied">Location permission is needed to calculate prayer times for your area.</string>
+    <string name="prayer_choose_location_first">Choose your location before saving the widget.</string>
+    <string name="prayer_calculation_title">Calculation settings</string>
+    <string name="prayer_calculation_description">Automatic uses the authority AlAdhan selects for your coordinates. Choose a method manually to match your mosque or local authority.</string>
+    <string name="prayer_asr_school_title">Asr juristic method</string>
+    <string name="prayer_school_standard">Standard</string>
+    <string name="prayer_school_hanafi">Hanafi</string>
+    <string name="prayer_accuracy_notice">Prayer times are calculated prayer-window starts, not mosque iqamah times. Local mosque or government schedules may be adjusted by a few minutes.</string>
+    <string name="prayer_save_widget">Save prayer widget</string>
+    <string name="prayer_loading_times">Loading prayer times…</string>
+    <string name="prayer_api_error">AlAdhan could not load the prayer schedule. Check your connection and try again.</string>
+
+    <string-array name="hijri_month_names">
+        <item>Muharram</item>
+        <item>Safar</item>
+        <item>Rabi al-Awwal</item>
+        <item>Rabi al-Thani</item>
+        <item>Jumada al-Awwal</item>
+        <item>Jumada al-Thani</item>
+        <item>Rajab</item>
+        <item>Sha’ban</item>
+        <item>Ramadan</item>
+        <item>Shawwal</item>
+        <item>Dhu al-Qi’dah</item>
+        <item>Dhu al-Hijjah</item>
+    </string-array>
 </resources>

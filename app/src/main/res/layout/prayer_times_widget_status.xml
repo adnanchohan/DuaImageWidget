@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/prayer_status_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_prayer_widget"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="18dp">
+
+    <ProgressBar
+        android:id="@+id/prayer_status_progress"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:indeterminateTint="@color/prayer_widget_accent"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/prayer_status_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="center"
+        android:text="Set your prayer location"
+        android:textColor="@color/prayer_widget_text"
+        android:textSize="@dimen/prayer_widget_status_title_text_size" />
+
+    <TextView
+        android:id="@+id/prayer_status_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center"
+        android:maxLines="2"
+        android:text="Tap to use your current location."
+        android:textColor="@color/prayer_widget_secondary"
+        android:textSize="@dimen/prayer_widget_status_message_text_size" />
+</LinearLayout>
