@@ -36,6 +36,11 @@
             android:theme="@style/Theme.DuaImageWidget"
             android:windowSoftInputMode="adjustResize" />
         <activity
+            android:name=".ui.widgets.WidgetGalleryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DuaImageWidget"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".ui.prayer.PrayerWidgetConfigurationActivity"
             android:excludeFromRecents="true"
             android:exported="true"

@@ -1,10 +1,8 @@
 package com.watchfulai.duaimagewidget
 
-import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -26,16 +24,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,16 +48,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.watchfulai.duaimagewidget.data.AppSettings
 import com.watchfulai.duaimagewidget.data.AppSettingsRepository
-import com.watchfulai.duaimagewidget.prayer.PrayerTimesWidgetProvider
 import com.watchfulai.duaimagewidget.ui.components.BrandMark
 import com.watchfulai.duaimagewidget.ui.components.DuaIconButton
 import com.watchfulai.duaimagewidget.ui.components.DuaPill
-import com.watchfulai.duaimagewidget.ui.components.DuaPrimaryButton
 import com.watchfulai.duaimagewidget.ui.components.DuaSurfaceCard
 import com.watchfulai.duaimagewidget.ui.LocaleAwareActivity
 import com.watchfulai.duaimagewidget.ui.settings.SettingsActivity
 import com.watchfulai.duaimagewidget.ui.theme.DuaImageWidgetTheme
 import com.watchfulai.duaimagewidget.ui.theme.Gold300
+import com.watchfulai.duaimagewidget.ui.widgets.WidgetGalleryActivity
 import com.watchfulai.duaimagewidget.ui.widgets.YourWidgetsActivity
 import com.watchfulai.duaimagewidget.widget.DuaImageWidgetReceiver
 
@@ -76,17 +70,7 @@ class MainActivity : LocaleAwareActivity() {
         setContent {
             val settings by settingsRepository.settings.collectAsState(initial = AppSettings())
             DuaImageWidgetTheme(appTheme = settings.theme) {
-                var status by remember { mutableStateOf<String?>(null) }
-                val pinRequestedMessage = stringResource(R.string.status_widget_pin_requested)
-                val pinFallbackMessage = stringResource(R.string.status_widget_pin_fallback)
-                val prayerPinRequestedMessage = stringResource(
-                    R.string.status_prayer_widget_pin_requested,
-                )
-                val prayerPinFallbackMessage = stringResource(
-                    R.string.status_prayer_widget_pin_fallback,
-                )
                 HomeScreen(
-                    status = status,
                     activeWidgetCount = activeWidgetCount,
                     onSettings = {
                         startActivity(Intent(this, SettingsActivity::class.java))
@@ -94,33 +78,8 @@ class MainActivity : LocaleAwareActivity() {
                     onYourWidgets = {
                         startActivity(Intent(this, YourWidgetsActivity::class.java))
                     },
-                    onAddPrayerWidget = {
-                        status = if (
-                            requestWidgetPin(
-                                providerClass = PrayerTimesWidgetProvider::class.java,
-                                configurationClass = com.watchfulai.duaimagewidget.ui.prayer
-                                    .PrayerWidgetConfigurationActivity::class.java,
-                                requestCode = PIN_PRAYER_WIDGET_REQUEST_CODE,
-                            )
-                        ) {
-                            prayerPinRequestedMessage
-                        } else {
-                            prayerPinFallbackMessage
-                        }
-                    },
-                    onAddDuaWidget = {
-                        status = if (
-                            requestWidgetPin(
-                                providerClass = DuaImageWidgetReceiver::class.java,
-                                configurationClass = com.watchfulai.duaimagewidget.ui.configuration
-                                    .WidgetConfigurationActivity::class.java,
-                                requestCode = PIN_DUA_WIDGET_REQUEST_CODE,
-                            )
-                        ) {
-                            pinRequestedMessage
-                        } else {
-                            pinFallbackMessage
-                        }
+                    onWidgetGallery = {
+                        startActivity(Intent(this, WidgetGalleryActivity::class.java))
                     },
                 )
             }
@@ -134,80 +93,17 @@ class MainActivity : LocaleAwareActivity() {
         ).size
     }
 
-    private fun requestWidgetPin(
-        providerClass: Class<*>,
-        configurationClass: Class<*>,
-        requestCode: Int,
-    ): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
-        val manager = AppWidgetManager.getInstance(this)
-        if (!manager.isRequestPinAppWidgetSupported) return false
-        val configureIntent = Intent(this, configurationClass).apply {
-            action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        }
-        val pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT or
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
-        val successCallback = PendingIntent.getActivity(
-            this,
-            requestCode,
-            configureIntent,
-            pendingIntentFlags,
-        )
-        return manager.requestPinAppWidget(
-            ComponentName(this, providerClass),
-            null,
-            successCallback,
-        )
-    }
-
-    private companion object {
-        const val PIN_DUA_WIDGET_REQUEST_CODE = 1001
-        const val PIN_PRAYER_WIDGET_REQUEST_CODE = 1002
-    }
 }
 
 @Composable
 private fun HomeScreen(
-    status: String?,
     activeWidgetCount: Int,
     onSettings: () -> Unit,
     onYourWidgets: () -> Unit,
-    onAddPrayerWidget: () -> Unit,
-    onAddDuaWidget: () -> Unit,
+    onWidgetGallery: () -> Unit,
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        bottomBar = {
-            Surface(color = MaterialTheme.colorScheme.background) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .padding(top = 12.dp, bottom = 18.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    DuaPrimaryButton(
-                        text = stringResource(R.string.home_add_prayer_widget),
-                        onClick = onAddPrayerWidget,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedButton(
-                        onClick = onAddDuaWidget,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(R.string.home_add_widget))
-                    }
-                    Text(
-                        text = stringResource(R.string.watchfulai_apps),
-                        modifier = Modifier.padding(top = 9.dp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
-            }
-        },
     ) { contentPadding ->
         Column(
             modifier = Modifier
@@ -273,36 +169,13 @@ private fun HomeScreen(
 
             YourWidgetsTile(
                 activeWidgetCount = activeWidgetCount,
-                onClick = onYourWidgets,
+                onYourWidgets = onYourWidgets,
+                onWidgetGallery = onWidgetGallery,
             )
 
             WidgetShowcase()
 
-            status?.let {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_home),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                        Text(
-                            text = it,
-                            modifier = Modifier.weight(1f),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-                }
-            }
+
 
             DuaSurfaceCard(modifier = Modifier.fillMaxWidth()) {
                 Column(
@@ -366,12 +239,16 @@ private fun HomeScreen(
 @Composable
 private fun YourWidgetsTile(
     activeWidgetCount: Int,
-    onClick: () -> Unit,
+    onYourWidgets: () -> Unit,
+    onWidgetGallery: () -> Unit,
 ) {
+    val hasActiveWidgets = activeWidgetCount > 0
     DuaSurfaceCard(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .clickable(
+                onClick = if (hasActiveWidgets) onYourWidgets else onWidgetGallery,
+            ),
         containerColor = MaterialTheme.colorScheme.primaryContainer,
     ) {
         Row(
@@ -381,7 +258,9 @@ private fun YourWidgetsTile(
         ) {
             Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surface) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_widgets),
+                    painter = painterResource(
+                        if (hasActiveWidgets) R.drawable.ic_widgets else R.drawable.ic_add,
+                    ),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
@@ -394,13 +273,25 @@ private fun YourWidgetsTile(
                 verticalArrangement = Arrangement.spacedBy(3.dp),
             ) {
                 Text(
-                    stringResource(R.string.home_your_widgets_title),
+                    stringResource(
+                        if (hasActiveWidgets) {
+                            R.string.home_your_widgets_title
+                        } else {
+                            R.string.home_add_widget_title
+                        },
+                    ),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    stringResource(R.string.home_your_widgets_description),
+                    stringResource(
+                        if (hasActiveWidgets) {
+                            R.string.home_your_widgets_description
+                        } else {
+                            R.string.home_add_widget_description
+                        },
+                    ),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -409,18 +300,20 @@ private fun YourWidgetsTile(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surface) {
-                    Text(
-                        text = pluralStringResource(
-                            R.plurals.widgets_active_count,
-                            activeWidgetCount,
-                            activeWidgetCount,
-                        ),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
+                if (hasActiveWidgets) {
+                    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surface) {
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.widgets_active_count,
+                                activeWidgetCount,
+                                activeWidgetCount,
+                            ),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
                 }
                 Icon(
                     painter = painterResource(R.drawable.ic_chevron_right),

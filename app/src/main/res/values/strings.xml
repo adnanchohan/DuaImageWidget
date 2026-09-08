@@ -22,6 +22,22 @@
     <string name="open_settings">Open settings</string>
     <string name="home_your_widgets_title">Your widgets</string>
     <string name="home_your_widgets_description">View and edit every widget on your home screen.</string>
+    <string name="home_add_widget_title">Add a Widget</string>
+    <string name="home_add_widget_description">Browse and add beautiful widgets to your home screen.</string>
+
+    <string name="gallery_title">Widget Gallery</string>
+    <string name="gallery_subtitle">Choose a widget to add to your home screen.</string>
+    <string name="gallery_coming_soon">Coming Soon</string>
+    <string name="gallery_dua_image_name">Dua Image</string>
+    <string name="gallery_dua_image_description">Display a beautifully framed dua image on your home screen.</string>
+    <string name="gallery_prayer_times_name">Prayer Times</string>
+    <string name="gallery_prayer_times_description">Live prayer times, next-prayer countdown, Hijri date and sunrise.</string>
+    <string name="gallery_tasbeeh_name">Tasbeeh Counter</string>
+    <string name="gallery_tasbeeh_description">Count your dhikr with a simple tap-to-count home-screen widget.</string>
+    <string name="gallery_hadith_name">Daily Hadith</string>
+    <string name="gallery_hadith_description">A new hadith displayed on your home screen every day.</string>
+    <string name="gallery_ayat_name">Daily Ayat</string>
+    <string name="gallery_ayat_description">A fresh verse from the Quran on your home screen each day.</string>
     <string name="open_your_widgets">Open your widgets</string>
     <string name="home_steps_title">Beautiful in three steps</string>
     <string name="home_step_add_title">Add the widget</string>
