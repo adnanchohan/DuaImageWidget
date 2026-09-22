@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Dua Image Widget</string>
+    <string name="app_name">My Widgets</string>
 
     <string name="widget_description">Keep a selected dua image on your home screen</string>
     <string name="widget_loading">Loading dua…</string>
@@ -8,17 +8,17 @@
     <string name="widget_preview_text">Your dua</string>
 
     <string name="status_widget_pin_requested">Choose a place on your home screen, then select your dua image.</string>
-    <string name="status_widget_pin_fallback">Open the home-screen widget picker and select Dua Image Widget.</string>
+    <string name="status_widget_pin_fallback">Open the home-screen widget picker and select My Widgets.</string>
     <string name="home_add_widget">Add dua image widget</string>
     <string name="home_add_prayer_widget">Add prayer-times widget</string>
     <string name="status_prayer_widget_pin_requested">Choose a place on your home screen, then confirm your prayer location.</string>
     <string name="status_prayer_widget_pin_fallback">Open the home-screen widget picker and select Prayer Times.</string>
     <string name="watchfulai_apps">WatchFulAI Apps</string>
-    <string name="home_reminder_pill">A quiet reminder, always close</string>
+    <string name="home_reminder_pill">Islamic &amp; Useful Widgets</string>
     <string name="home_hero_prefix">Your\u0020</string>
-    <string name="home_hero_dua">دُعَاء</string>
-    <string name="home_hero_suffix">,\none glance away.</string>
-    <string name="home_description">Turn any dua image into a beautiful, perfectly framed home-screen widget.</string>
+    <string name="home_hero_dua">Widgets</string>
+    <string name="home_hero_suffix">,\nat a glance.</string>
+    <string name="home_description">Beautiful Islamic widgets, daily reminders, and useful tools crafted for your home screen.</string>
     <string name="open_settings">Open settings</string>
     <string name="home_your_widgets_title">Your widgets</string>
     <string name="home_your_widgets_description">View and edit every widget on your home screen.</string>
@@ -38,17 +38,29 @@
     <string name="gallery_hadith_description">A new hadith displayed on your home screen every day.</string>
     <string name="gallery_ayat_name">Daily Ayat</string>
     <string name="gallery_ayat_description">A fresh verse from the Quran on your home screen each day.</string>
+    <string name="gallery_quotes_name">Daily Quotes &amp; Notes</string>
+    <string name="gallery_quotes_description">Inspiring thoughts and personal notes right on your home screen.</string>
     <string name="open_your_widgets">Open your widgets</string>
     <string name="home_steps_title">Beautiful in three steps</string>
-    <string name="home_step_add_title">Add the widget</string>
-    <string name="home_step_add_description">Choose any available size on your home screen.</string>
-    <string name="home_step_pick_title">Pick your image</string>
-    <string name="home_step_pick_description">Use the system photo picker—your library stays private.</string>
-    <string name="home_step_frame_title">Frame it perfectly</string>
-    <string name="home_step_frame_description">Fit every line or fill, drag and pinch to crop.</string>
+    <string name="home_step_add_title">Choose your widget</string>
+    <string name="home_step_add_description">Explore prayer times, dua images, tasbeeh counters, and daily tools.</string>
+    <string name="home_step_pick_title">Add to home screen</string>
+    <string name="home_step_pick_description">Place widgets on your home screen and resize to fit your layout.</string>
+    <string name="home_step_frame_title">Personalize &amp; enjoy</string>
+    <string name="home_step_frame_description">Customize styles, locations, and settings whenever you want.</string>
     <string name="home_showcase_dua" translatable="false">رَبِّ زِدْنِي عِلْمًا</string>
     <string name="home_showcase_translation">My Lord, increase me in knowledge.</string>
     <string name="home_showcase_size_pill">Fits every widget size</string>
+    <string name="showcase_tab_prayer">Prayer Times</string>
+    <string name="showcase_tab_dua">Dua Image</string>
+    <string name="showcase_tab_tasbeeh">Tasbeeh</string>
+    <string name="showcase_prayer_next">Next: Asr in 2h 15m</string>
+    <string name="showcase_prayer_city">London, UK</string>
+    <string name="showcase_prayer_hijri">15 Ramadan 1447 AH</string>
+    <string name="showcase_tasbeeh_dhikr" translatable="false">سُبْحَانَ اللَّهِ</string>
+    <string name="showcase_tasbeeh_meaning">Glory be to Allah</string>
+    <string name="showcase_tasbeeh_count">33 / 33</string>
+    <string name="showcase_tasbeeh_tap">Tap to count</string>
 
     <string name="widgets_title">Your widgets</string>
     <string name="widgets_subtitle">Only widgets currently on your home screen appear here.</string>
@@ -58,9 +70,11 @@
     </plurals>
     <string name="widgets_loading">Loading your widgets…</string>
     <string name="widgets_empty_title">No widgets yet</string>
-    <string name="widgets_empty_description">Add a Dua Image Widget to your home screen, then it will appear here.</string>
+    <string name="widgets_empty_description">Add any widget to your home screen, then it will appear here.</string>
     <string name="widgets_back_to_home">Back to home</string>
     <string name="widgets_item_title">Widget %1$d</string>
+    <string name="widgets_prayer_title">Prayer Times #%1$d</string>
+    <string name="widgets_dua_title">Dua Image #%1$d</string>
     <string name="widgets_needs_image">Needs image</string>
     <string name="widgets_preview_description">Preview of widget %1$d</string>
     <string name="widgets_edit">Edit widget</string>
@@ -75,7 +89,7 @@
     <string name="settings_more_apps_title">More Apps</string>
     <string name="settings_more_apps_description">Discover more apps from WatchFulAI.</string>
     <string name="settings_share_title">Share This App</string>
-    <string name="settings_share_description">Recommend Dua Image Widget to friends and family.</string>
+    <string name="settings_share_description">Recommend My Widgets to friends and family.</string>
     <string name="settings_contact_title">Contact Us</string>
     <string name="settings_contact_description">Questions or feedback? Send us an email.</string>
     <string name="settings_language_title">Change App Language</string>
@@ -90,10 +104,10 @@
     <string name="language_english">English</string>
     <string name="language_urdu">اردو</string>
     <string name="language_arabic">العربية</string>
-    <string name="share_message">Create beautifully framed dua widgets for your home screen. %1$s</string>
-    <string name="share_chooser_title">Share Dua Image Widget</string>
-    <string name="contact_email_subject">Dua Image Widget support</string>
-    <string name="contact_email_chooser_title">Contact Dua Image Widget</string>
+    <string name="share_message">Create beautiful Islamic and daily widgets for your home screen. %1$s</string>
+    <string name="share_chooser_title">Share My Widgets</string>
+    <string name="contact_email_subject">My Widgets support</string>
+    <string name="contact_email_chooser_title">Contact My Widgets</string>
     <string name="error_email_app_unavailable">No email app is available on this device.</string>
 
     <string name="config_saving">Saving…</string>

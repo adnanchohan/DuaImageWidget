@@ -165,6 +165,12 @@ private val widgetTypes = listOf(
         iconRes = R.drawable.ic_quran,
         isAvailable = false,
     ),
+    WidgetTypeInfo(
+        nameRes = R.string.gallery_quotes_name,
+        descriptionRes = R.string.gallery_quotes_description,
+        iconRes = R.drawable.ic_edit,
+        isAvailable = false,
+    ),
 )
 
 @Composable

@@ -50,6 +50,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
 import com.watchfulai.duaimagewidget.R
 import com.watchfulai.duaimagewidget.data.AppSettings
@@ -69,16 +70,26 @@ import com.watchfulai.duaimagewidget.ui.configuration.WidgetSizeDp
 import com.watchfulai.duaimagewidget.ui.configuration.resolveWidgetSize
 import com.watchfulai.duaimagewidget.ui.configuration.toWidgetCellSize
 import com.watchfulai.duaimagewidget.ui.theme.DuaImageWidgetTheme
+import com.watchfulai.duaimagewidget.prayer.PrayerSchedule
+import com.watchfulai.duaimagewidget.prayer.PrayerTimesWidgetProvider
+import com.watchfulai.duaimagewidget.prayer.PrayerWidgetRepository
+import com.watchfulai.duaimagewidget.ui.prayer.PrayerWidgetConfigurationActivity
+import com.watchfulai.duaimagewidget.ui.theme.Gold300
 import com.watchfulai.duaimagewidget.widget.DuaImageWidgetReceiver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import kotlin.math.roundToInt
 
 class YourWidgetsActivity : LocaleAwareActivity() {
     private val settingsRepository by lazy { AppSettingsRepository(applicationContext) }
     private val widgetRepository by lazy { WidgetConfigRepository(applicationContext) }
+    private val prayerRepository by lazy { PrayerWidgetRepository(applicationContext) }
     private var screenState by mutableStateOf(YourWidgetsState())
     private var refreshJob: Job? = null
 
@@ -111,44 +122,79 @@ class YourWidgetsActivity : LocaleAwareActivity() {
         }
     }
 
-    private suspend fun loadActiveWidgets(): List<WidgetSummary> {
+    private suspend fun loadActiveWidgets(): List<ActiveWidgetSummary> {
         val manager = AppWidgetManager.getInstance(applicationContext)
-        val provider = ComponentName(applicationContext, DuaImageWidgetReceiver::class.java)
         val isLandscape = resources.configuration.orientation ==
             Configuration.ORIENTATION_LANDSCAPE
 
-        return manager.getAppWidgetIds(provider)
-            .sorted()
-            .mapIndexed { index, appWidgetId ->
-                val options = manager.getAppWidgetOptions(appWidgetId)
-                val size = resolveWidgetSize(
-                    exactSize = null,
-                    minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH),
-                    minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT),
-                    maxWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH),
-                    maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT),
-                    isLandscape = isLandscape,
-                )
-                val config = widgetRepository.get(appWidgetId)
-                WidgetSummary(
+        val duaIds = manager.getAppWidgetIds(
+            ComponentName(applicationContext, DuaImageWidgetReceiver::class.java),
+        )
+        val prayerIds = manager.getAppWidgetIds(
+            ComponentName(applicationContext, PrayerTimesWidgetProvider::class.java),
+        )
+
+        val result = mutableListOf<ActiveWidgetSummary>()
+        var displayCounter = 1
+
+        duaIds.sorted().forEach { appWidgetId ->
+            val options = manager.getAppWidgetOptions(appWidgetId)
+            val size = resolveWidgetSize(
+                exactSize = null,
+                minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH),
+                minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT),
+                maxWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH),
+                maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT),
+                isLandscape = isLandscape,
+            )
+            val config = widgetRepository.get(appWidgetId)
+            val preview = config?.let { savedConfig ->
+                val (previewWidth, previewHeight) = previewDimensions(size)
+                renderPreview(savedConfig.imageFileName) { source ->
+                    WidgetBitmapRenderer.render(
+                        source = source,
+                        requestedWidth = previewWidth,
+                        requestedHeight = previewHeight,
+                        config = savedConfig,
+                        cornerRadiusPx = previewCornerRadiusPx(),
+                    )
+                }
+            }
+            result.add(
+                ActiveWidgetSummary.DuaImage(
                     appWidgetId = appWidgetId,
-                    displayNumber = index + 1,
+                    displayNumber = displayCounter++,
                     size = size,
                     cropMode = config?.cropMode,
-                    preview = config?.let { savedConfig ->
-                        val (previewWidth, previewHeight) = previewDimensions(size)
-                        renderPreview(savedConfig.imageFileName) { source ->
-                            WidgetBitmapRenderer.render(
-                                source = source,
-                                requestedWidth = previewWidth,
-                                requestedHeight = previewHeight,
-                                config = savedConfig,
-                                cornerRadiusPx = previewCornerRadiusPx(),
-                            )
-                        }
-                    },
-                )
-            }
+                    preview = preview,
+                ),
+            )
+        }
+
+        prayerIds.sorted().forEach { appWidgetId ->
+            val options = manager.getAppWidgetOptions(appWidgetId)
+            val size = resolveWidgetSize(
+                exactSize = null,
+                minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH),
+                minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT),
+                maxWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH),
+                maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT),
+                isLandscape = isLandscape,
+            )
+            val config = prayerRepository.getConfig(appWidgetId)
+            val schedule = prayerRepository.getSchedule(appWidgetId)
+            result.add(
+                ActiveWidgetSummary.PrayerTimes(
+                    appWidgetId = appWidgetId,
+                    displayNumber = displayCounter++,
+                    size = size,
+                    locationLabel = config?.locationLabel,
+                    schedule = schedule,
+                ),
+            )
+        }
+
+        return result
     }
 
     private suspend fun renderPreview(
@@ -181,14 +227,26 @@ class YourWidgetsActivity : LocaleAwareActivity() {
             FALLBACK_CORNER_RADIUS_DP * resources.displayMetrics.density
         }
 
-    private fun editWidget(appWidgetId: Int) {
-        startActivity(
-            Intent(this, WidgetConfigurationActivity::class.java).apply {
-                action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
-                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-                putExtra(EXTRA_EDIT_FROM_WIDGET_LIST, true)
-            },
-        )
+    private fun editWidget(item: ActiveWidgetSummary) {
+        when (item) {
+            is ActiveWidgetSummary.DuaImage -> {
+                startActivity(
+                    Intent(this, WidgetConfigurationActivity::class.java).apply {
+                        action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, item.appWidgetId)
+                        putExtra(EXTRA_EDIT_FROM_WIDGET_LIST, true)
+                    },
+                )
+            }
+            is ActiveWidgetSummary.PrayerTimes -> {
+                startActivity(
+                    Intent(this, PrayerWidgetConfigurationActivity::class.java).apply {
+                        action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, item.appWidgetId)
+                    },
+                )
+            }
+        }
     }
 
     private companion object {
@@ -197,24 +255,38 @@ class YourWidgetsActivity : LocaleAwareActivity() {
     }
 }
 
+private sealed interface ActiveWidgetSummary {
+    val appWidgetId: Int
+    val displayNumber: Int
+    val size: WidgetSizeDp
+
+    data class DuaImage(
+        override val appWidgetId: Int,
+        override val displayNumber: Int,
+        override val size: WidgetSizeDp,
+        val cropMode: CropMode?,
+        val preview: Bitmap?,
+    ) : ActiveWidgetSummary
+
+    data class PrayerTimes(
+        override val appWidgetId: Int,
+        override val displayNumber: Int,
+        override val size: WidgetSizeDp,
+        val locationLabel: String?,
+        val schedule: PrayerSchedule?,
+    ) : ActiveWidgetSummary
+}
+
 private data class YourWidgetsState(
     val isLoading: Boolean = true,
-    val items: List<WidgetSummary> = emptyList(),
-)
-
-private data class WidgetSummary(
-    val appWidgetId: Int,
-    val displayNumber: Int,
-    val size: WidgetSizeDp,
-    val cropMode: CropMode?,
-    val preview: Bitmap?,
+    val items: List<ActiveWidgetSummary> = emptyList(),
 )
 
 @Composable
 private fun YourWidgetsScreen(
     state: YourWidgetsState,
     onBack: () -> Unit,
-    onEditWidget: (Int) -> Unit,
+    onEditWidget: (ActiveWidgetSummary) -> Unit,
 ) {
     Scaffold(modifier = Modifier.fillMaxSize()) { contentPadding ->
         Column(
@@ -271,10 +343,20 @@ private fun YourWidgetsScreen(
                         )
                     }
                     state.items.forEach { widget ->
-                        WidgetSummaryCard(
-                            widget = widget,
-                            onClick = { onEditWidget(widget.appWidgetId) },
-                        )
+                        when (widget) {
+                            is ActiveWidgetSummary.DuaImage -> {
+                                DuaWidgetSummaryCard(
+                                    widget = widget,
+                                    onClick = { onEditWidget(widget) },
+                                )
+                            }
+                            is ActiveWidgetSummary.PrayerTimes -> {
+                                PrayerWidgetSummaryCard(
+                                    widget = widget,
+                                    onClick = { onEditWidget(widget) },
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -344,8 +426,8 @@ private fun WidgetsEmptyPanel(onBack: () -> Unit) {
 }
 
 @Composable
-private fun WidgetSummaryCard(
-    widget: WidgetSummary,
+private fun DuaWidgetSummaryCard(
+    widget: ActiveWidgetSummary.DuaImage,
     onClick: () -> Unit,
 ) {
     val aspectRatio = (widget.size.width / widget.size.height).coerceAtLeast(0.1f)
@@ -368,7 +450,7 @@ private fun WidgetSummaryCard(
                     color = MaterialTheme.colorScheme.primaryContainer,
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_widgets),
+                        painter = painterResource(R.drawable.ic_image),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(10.dp).size(20.dp),
@@ -376,8 +458,9 @@ private fun WidgetSummaryCard(
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        stringResource(R.string.widgets_item_title, widget.displayNumber),
+                        stringResource(R.string.widgets_dua_title, widget.displayNumber),
                         style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                     )
                     Text(
                         widget.size.toWidgetCellSize().label,
@@ -438,6 +521,175 @@ private fun WidgetSummaryCard(
                         )
                         Text(
                             stringResource(R.string.widgets_needs_image),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_edit),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    stringResource(R.string.widgets_edit),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PrayerWidgetSummaryCard(
+    widget: ActiveWidgetSummary.PrayerTimes,
+    onClick: () -> Unit,
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    DuaSurfaceCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_mosque),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(10.dp).size(20.dp),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.widgets_prayer_title, widget.displayNumber),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        widget.size.toWidgetCellSize().label,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceVariant) {
+                    Text(
+                        text = widget.locationLabel ?: stringResource(R.string.prayer_no_location),
+                        modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(22.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                val schedule = widget.schedule
+                if (schedule != null) {
+                    val timeFormatter = SimpleDateFormat(
+                        if (android.text.format.DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm",
+                        Locale.getDefault(),
+                    ).apply {
+                        timeZone = TimeZone.getTimeZone(schedule.timezoneId)
+                    }
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = widget.locationLabel ?: "",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(
+                                text = stringResource(
+                                    R.string.prayer_sunrise_value,
+                                    timeFormatter.format(Date(schedule.sunriseEpochMillis)),
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            schedule.prayers.forEach { prayer ->
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.surface,
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                    ) {
+                                        Text(
+                                            text = prayer.name.localizedName(context),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontSize = 10.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                        Text(
+                                            text = timeFormatter.format(Date(prayer.epochMillis)),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_mosque),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp),
+                        )
+                        Text(
+                            stringResource(R.string.prayer_setup_title),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium,
                         )
