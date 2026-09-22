@@ -168,7 +168,7 @@
     <string name="prayer_maghrib">المغرب</string>
     <string name="prayer_isha">العشاء</string>
     <string name="prayer_sunrise_value">الشروق %1$s</string>
-    <string name="prayer_next_starts_in">%1$s القادمة خلال</string>
+    <string name="prayer_next_starts_in">%1$s القادمة خلال </string>
     <string name="prayer_hijri_date_format">%1$d %2$s %3$d هـ</string>
     <string name="prayer_setup_title">حدّد موقع الصلاة</string>
     <string name="prayer_setup_message">انقر لاستخدام موقعك الحالي.</string>

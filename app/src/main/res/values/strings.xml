@@ -164,7 +164,7 @@
     <string name="prayer_maghrib">Maghrib</string>
     <string name="prayer_isha">Isha</string>
     <string name="prayer_sunrise_value">Sunrise %1$s</string>
-    <string name="prayer_next_starts_in">Next %1$s in</string>
+    <string name="prayer_next_starts_in">Next %1$s in </string>
     <string name="prayer_hijri_date_format">%1$d %2$s %3$d AH</string>
     <string name="prayer_setup_title">Set your prayer location</string>
     <string name="prayer_setup_message">Tap to use your current location.</string>

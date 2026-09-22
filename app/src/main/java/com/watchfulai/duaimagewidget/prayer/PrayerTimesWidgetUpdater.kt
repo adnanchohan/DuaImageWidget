@@ -95,10 +95,10 @@ object PrayerTimesWidgetUpdater {
                     if (isActive) R.drawable.bg_prayer_slot_active else R.drawable.bg_prayer_slot,
                 )
                 val textColor = context.getColor(
-                    if (isActive) R.color.prayer_active_text else R.color.prayer_widget_text,
+                    if (isActive) R.color.prayer_active_text else R.color.prayer_slot_text,
                 )
                 val secondaryColor = context.getColor(
-                    if (isActive) R.color.prayer_active_text else R.color.prayer_widget_secondary,
+                    if (isActive) R.color.prayer_active_text else R.color.prayer_slot_text_secondary,
                 )
                 setTextColor(viewIds.name, secondaryColor)
                 setTextColor(viewIds.time, textColor)

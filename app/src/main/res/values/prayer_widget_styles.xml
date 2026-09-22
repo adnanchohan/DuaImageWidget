@@ -4,15 +4,15 @@
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_weight">1</item>
-        <item name="android:layout_marginStart">2dp</item>
-        <item name="android:layout_marginEnd">2dp</item>
+        <item name="android:layout_marginStart">2.5dp</item>
+        <item name="android:layout_marginEnd">2.5dp</item>
         <item name="android:background">@drawable/bg_prayer_slot</item>
         <item name="android:gravity">center</item>
         <item name="android:orientation">vertical</item>
-        <item name="android:paddingLeft">1dp</item>
-        <item name="android:paddingTop">3dp</item>
-        <item name="android:paddingRight">1dp</item>
-        <item name="android:paddingBottom">3dp</item>
+        <item name="android:paddingLeft">4dp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingRight">4dp</item>
+        <item name="android:paddingBottom">6dp</item>
     </style>
 
     <style name="PrayerWidgetSlotName">
@@ -22,17 +22,19 @@
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:gravity">center</item>
         <item name="android:maxLines">1</item>
-        <item name="android:textColor">@color/prayer_widget_secondary</item>
+        <item name="android:textColor">@color/prayer_slot_text_secondary</item>
         <item name="android:textSize">@dimen/prayer_widget_prayer_name_text_size</item>
     </style>
 
     <style name="PrayerWidgetSlotTime">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">4dp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:gravity">center</item>
         <item name="android:maxLines">1</item>
-        <item name="android:textColor">@color/prayer_widget_text</item>
+        <item name="android:textColor">@color/prayer_slot_text</item>
         <item name="android:textSize">@dimen/prayer_widget_prayer_time_text_size</item>
+        <item name="android:textStyle">bold</item>
     </style>
 </resources>

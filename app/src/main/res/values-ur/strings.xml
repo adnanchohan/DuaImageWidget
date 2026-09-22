@@ -164,7 +164,7 @@
     <string name="prayer_maghrib">مغرب</string>
     <string name="prayer_isha">عشاء</string>
     <string name="prayer_sunrise_value">طلوع %1$s</string>
-    <string name="prayer_next_starts_in">اگلی %1$s میں</string>
+    <string name="prayer_next_starts_in">اگلی %1$s میں </string>
     <string name="prayer_hijri_date_format">%1$d %2$s %3$d ھ</string>
     <string name="prayer_setup_title">نماز کا مقام مقرر کریں</string>
     <string name="prayer_setup_message">اپنا موجودہ مقام استعمال کرنے کے لیے ٹیپ کریں۔</string>

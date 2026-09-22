@@ -8,11 +8,20 @@
     android:orientation="vertical"
     android:padding="18dp">
 
+    <ImageView
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginBottom="10dp"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_mosque"
+        android:tint="@color/prayer_widget_gold" />
+
     <ProgressBar
         android:id="@+id/prayer_status_progress"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:indeterminateTint="@color/prayer_widget_accent"
+        android:layout_marginBottom="8dp"
+        android:indeterminateTint="@color/prayer_widget_gold"
         android:visibility="gone" />
 
     <TextView
@@ -23,7 +32,8 @@
         android:gravity="center"
         android:text="Set your prayer location"
         android:textColor="@color/prayer_widget_text"
-        android:textSize="@dimen/prayer_widget_status_title_text_size" />
+        android:textSize="@dimen/prayer_widget_status_title_text_size"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/prayer_status_message"

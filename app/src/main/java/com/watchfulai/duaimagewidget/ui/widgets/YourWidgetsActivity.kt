@@ -608,12 +608,22 @@ private fun PrayerWidgetSummaryCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(22.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(16.dp),
+                    .background(
+                        androidx.compose.ui.graphics.Brush.verticalGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                            ),
+                        ),
+                    )
+                    .padding(14.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 val schedule = widget.schedule
                 if (schedule != null) {
+                    val now = System.currentTimeMillis()
+                    val currentPrayer = schedule.currentPrayerAt(now)
+                    val nextPrayer = schedule.nextPrayerAt(now)
                     val timeFormatter = SimpleDateFormat(
                         if (android.text.format.DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm",
                         Locale.getDefault(),
@@ -625,35 +635,92 @@ private fun PrayerWidgetSummaryCard(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
+                        // Top bar: Location & Hijri
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_mosque),
+                                    contentDescription = null,
+                                    tint = Gold300,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                                Text(
+                                    text = widget.locationLabel ?: "",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = androidx.compose.ui.graphics.Color.White,
+                                )
+                            }
                             Text(
-                                text = widget.locationLabel ?: "",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            Text(
-                                text = stringResource(
-                                    R.string.prayer_sunrise_value,
-                                    timeFormatter.format(Date(schedule.sunriseEpochMillis)),
-                                ),
+                                text = "${schedule.hijriDate.day} ${schedule.hijriDate.month} ${schedule.hijriDate.year} AH",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = Gold300,
                             )
                         }
 
+                        // Hero card: Next prayer & sunrise & LIVE badge
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.15f),
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column {
+                                    Text(
+                                        text = context.getString(
+                                            R.string.prayer_next_starts_in,
+                                            nextPrayer.name.localizedName(context),
+                                        ),
+                                        color = androidx.compose.ui.graphics.Color.White,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                    Text(
+                                        text = context.getString(
+                                            R.string.prayer_sunrise_value,
+                                            timeFormatter.format(Date(schedule.sunriseEpochMillis)),
+                                        ),
+                                        color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f),
+                                        style = MaterialTheme.typography.labelSmall,
+                                    )
+                                }
+                                Surface(
+                                    shape = CircleShape,
+                                    color = Gold300,
+                                ) {
+                                    Text(
+                                        "LIVE",
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                        color = androidx.compose.ui.graphics.Color(0xFF3E2723),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Black,
+                                    )
+                                }
+                            }
+                        }
+
+                        // 5 prayer slots
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
                             schedule.prayers.forEach { prayer ->
+                                val isCurrent = prayer.name == currentPrayer
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
-                                    color = MaterialTheme.colorScheme.surface,
+                                    color = if (isCurrent) Gold300 else androidx.compose.ui.graphics.Color.White.copy(alpha = 0.12f),
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
@@ -663,14 +730,15 @@ private fun PrayerWidgetSummaryCard(
                                             text = prayer.name.localizedName(context),
                                             style = MaterialTheme.typography.labelSmall,
                                             fontSize = 10.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            color = if (isCurrent) androidx.compose.ui.graphics.Color(0xFF3E2723) else androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f),
+                                            fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                                         )
                                         Text(
                                             text = timeFormatter.format(Date(prayer.epochMillis)),
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 11.sp,
-                                            color = MaterialTheme.colorScheme.primary,
+                                            color = if (isCurrent) androidx.compose.ui.graphics.Color(0xFF3E2723) else androidx.compose.ui.graphics.Color.White,
                                         )
                                     }
                                 }
@@ -685,13 +753,14 @@ private fun PrayerWidgetSummaryCard(
                         Icon(
                             painter = painterResource(R.drawable.ic_mosque),
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = Gold300,
                             modifier = Modifier.size(32.dp),
                         )
                         Text(
                             stringResource(R.string.prayer_setup_title),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = androidx.compose.ui.graphics.Color.White,
                             style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
                         )
                     }
                 }
