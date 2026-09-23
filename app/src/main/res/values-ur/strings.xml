@@ -1,11 +1,11 @@
 <resources>
     <string name="app_name">میرے ویجٹس</string>
 
-    <string name="widget_description">منتخب دعا کی تصویر اپنی ہوم اسکرین پر رکھیں</string>
-    <string name="widget_loading">دعا لوڈ ہو رہی ہے…</string>
-    <string name="widget_choose_image">دعا کی تصویر منتخب کرنے کے لیے ٹیپ کریں</string>
-    <string name="widget_image_description">منتخب دعا کی تصویر</string>
-    <string name="widget_preview_text">آپ کی دعا</string>
+    <string name="widget_description">اپنی ہوم اسکرین پر منتخب تصویر رکھیں</string>
+    <string name="widget_loading">تصویر لوڈ ہو رہی ہے…</string>
+    <string name="widget_choose_image">تصویر منتخب کرنے کے لیے دبائیں</string>
+    <string name="widget_image_description">منتخب تصویر</string>
+    <string name="widget_preview_text">آپ کی تصویر</string>
 
     <string name="status_widget_pin_requested">اپنی ہوم اسکرین پر جگہ منتخب کریں، پھر اپنی دعا کی تصویر چنیں۔</string>
     <string name="status_widget_pin_fallback">ہوم اسکرین ویجٹ پِکر کھولیں اور میرے ویجٹس منتخب کریں۔</string>
@@ -71,7 +71,7 @@
     <string name="widgets_back_to_home">ہوم پر واپس جائیں</string>
     <string name="widgets_item_title">ویجٹ ⁦%1$d⁩</string>
     <string name="widgets_prayer_title">نماز کے اوقات ⁦#%1$d⁩</string>
-    <string name="widgets_dua_title">دعا امیج ⁦#%1$d⁩</string>
+    <string name="widgets_dua_title">تصویر #%1$d</string>
     <string name="widgets_needs_image">تصویر درکار ہے</string>
     <string name="widgets_preview_description">ویجٹ ⁦%1$d⁩ کا پیش منظر</string>
     <string name="widgets_edit">ویجٹ میں ترمیم کریں</string>
@@ -113,7 +113,7 @@
     <string name="config_open_app_add_widget">ایپ کھولیں · ایک اور ویجٹ شامل کریں</string>
     <string name="config_cancel_return_home">منسوخ کریں اور ہوم اسکرین پر واپس جائیں</string>
     <string name="config_back_to_widgets">اپنے ویجٹس پر واپس جائیں</string>
-    <string name="config_title">اپنی دعا فریم کریں</string>
+    <string name="config_title">اپنی تصویر سجائیں</string>
     <string name="config_preview_current_exact">موجودہ ہوم اسکرین کے عین سائز کا پیش منظر۔</string>
     <string name="config_preview_target">⁦%1$s⁩ ہدف سائز کا پیش منظر۔</string>
     <string name="config_live_preview">براہِ راست پیش منظر</string>
@@ -138,8 +138,8 @@
     <string name="config_resize_instruction">ہوم اسکرین پر واپس جائیں اور ویجٹ کو ⁦%1$s⁩ سائز میں بدلنے کے لیے اسے دیر تک دبائیں۔</string>
     <string name="config_resize_instruction_unsaved">پہلے یہ ویجٹ محفوظ کریں۔ پھر ہوم اسکرین پر واپس جائیں اور اسے ⁦%1$s⁩ سائز میں بدلنے کے لیے دیر تک دبائیں۔</string>
     <string name="home">ہوم</string>
-    <string name="config_choose_image_title">اپنی دعا کی تصویر منتخب کریں</string>
-    <string name="config_choose_image_description">دعا کی کوئی بھی چھوٹی تصویر منتخب کریں۔ اسے نجی اسٹوریج میں کاپی کیا جاتا ہے تاکہ آپ کا ویجٹ قابلِ اعتماد رہے۔</string>
+    <string name="config_choose_image_title">اپنی تصویر منتخب کریں</string>
+    <string name="config_choose_image_description">کوئی بھی تصویر منتخب کریں۔ ویجٹ کے لیے اسے نجی اسٹوریج میں محفوظ کیا جاتا ہے۔</string>
     <string name="config_choose_image">تصویر منتخب کریں</string>
     <string name="config_crop_fit">فِٹ</string>
     <string name="config_crop_fill">فِل اور کراپ</string>
@@ -194,4 +194,31 @@
         <item>جمادی الاول</item><item>جمادی الثانی</item><item>رجب</item><item>شعبان</item>
         <item>رمضان</item><item>شوال</item><item>ذوالقعدہ</item><item>ذوالحجہ</item>
     </string-array>
+    <string name="gallery_set_image_name">تصویر لگائیں</string>
+    <string name="gallery_set_image_description">اپنی ہوم اسکرین پر کوئی بھی تصویر یا فن پارہ دکھائیں۔</string>
+    <string name="gallery_pin_fallback">ہوم اسکرین کے ویجٹ مینو میں My Widgets سے ویجٹ منتخب کریں۔</string>
+    <string name="tasbeeh_config_title">تسبیح ویجٹ</string>
+    <string name="tasbeeh_setup">تسبیح ترتیب دینے کے لیے دبائیں</string>
+    <string name="tasbeeh_preview">ویجٹ کا پیش نظارہ</string>
+    <string name="tasbeeh_choose_dhikr">ذکر منتخب کریں یا خود لکھیں</string>
+    <string name="tasbeeh_dhikr">ذکر</string>
+    <string name="tasbeeh_meaning">ترجمہ یا ذیلی عنوان</string>
+    <string name="tasbeeh_target">مطلوبہ تعداد</string>
+    <string name="tasbeeh_target_help">1 سے 99,999 تک تعداد درج کریں۔</string>
+    <string name="tasbeeh_color">ویجٹ کا رنگ</string>
+    <string name="tasbeeh_green">سبز</string>
+    <string name="tasbeeh_blue">نیلا</string>
+    <string name="tasbeeh_plum">جامنی</string>
+    <string name="tasbeeh_show_meaning">ترجمہ یا ذیلی عنوان دکھائیں</string>
+    <string name="tasbeeh_restart">مطلوبہ تعداد کے بعد دوبارہ شروع کریں</string>
+    <string name="tasbeeh_restart_help">اگلا دباؤ نیا دور شروع کرے گا۔ بند ہونے پر گنتی مطلوبہ تعداد پر رک جائے گی۔</string>
+    <string name="tasbeeh_reset">گنتی صفر کریں</string>
+    <string name="tasbeeh_reset_pending">محفوظ کرنے پر گنتی صفر ہوگی</string>
+    <string name="tasbeeh_reset_confirm">محفوظ کرنے پر اس ویجٹ کی گنتی صفر کریں؟ دوسرے ویجٹس کی گنتی برقرار رہے گی۔</string>
+    <string name="tasbeeh_save">ویجٹ محفوظ کریں</string>
+    <string name="tasbeeh_save_error">ویجٹ محفوظ نہیں ہو سکا۔ دوبارہ کوشش کریں۔</string>
+    <string name="tasbeeh_edit_reset">ترمیم / صفر کریں</string>
+    <string name="tasbeeh_next_round">اگلا دور</string>
+    <string name="tasbeeh_complete">ہدف مکمل</string>
+    <string name="tasbeeh_counter_description">گنتی %1$s۔ گننے کے لیے دبائیں۔</string>
 </resources>

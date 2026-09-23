@@ -1,11 +1,11 @@
 <resources>
     <string name="app_name">أدواتي</string>
 
-    <string name="widget_description">احتفظ بصورة دعاء محددة على شاشتك الرئيسية</string>
-    <string name="widget_loading">جارٍ تحميل الدعاء…</string>
-    <string name="widget_choose_image">اضغط لاختيار صورة دعاء</string>
-    <string name="widget_image_description">صورة الدعاء المحددة</string>
-    <string name="widget_preview_text">دعاؤك</string>
+    <string name="widget_description">احتفظ بصورة مختارة على شاشتك الرئيسية</string>
+    <string name="widget_loading">جارٍ تحميل الصورة…</string>
+    <string name="widget_choose_image">اضغط لاختيار صورة</string>
+    <string name="widget_image_description">الصورة المختارة</string>
+    <string name="widget_preview_text">صورتك</string>
 
     <string name="status_widget_pin_requested">اختر مكانًا على شاشتك الرئيسية، ثم اختر صورة الدعاء.</string>
     <string name="status_widget_pin_fallback">افتح منتقي أدوات الشاشة الرئيسية واختر أدواتي.</string>
@@ -75,7 +75,7 @@
     <string name="widgets_back_to_home">العودة إلى الرئيسية</string>
     <string name="widgets_item_title">الأداة ⁦%1$d⁩</string>
     <string name="widgets_prayer_title">مواقيت الصلاة ⁦#%1$d⁩</string>
-    <string name="widgets_dua_title">صورة دعاء ⁦#%1$d⁩</string>
+    <string name="widgets_dua_title">الصورة #%1$d</string>
     <string name="widgets_needs_image">تحتاج إلى صورة</string>
     <string name="widgets_preview_description">معاينة الأداة ⁦%1$d⁩</string>
     <string name="widgets_edit">تعديل الأداة</string>
@@ -117,7 +117,7 @@
     <string name="config_open_app_add_widget">افتح التطبيق · أضف أداة أخرى</string>
     <string name="config_cancel_return_home">إلغاء والعودة إلى الشاشة الرئيسية</string>
     <string name="config_back_to_widgets">العودة إلى أدواتك</string>
-    <string name="config_title">اضبط إطار دعائك</string>
+    <string name="config_title">نسّق صورتك</string>
     <string name="config_preview_current_exact">معاينة الحجم الحالي الدقيق على الشاشة الرئيسية.</string>
     <string name="config_preview_target">معاينة الحجم المستهدف ⁦%1$s⁩.</string>
     <string name="config_live_preview">معاينة مباشرة</string>
@@ -142,8 +142,8 @@
     <string name="config_resize_instruction">ارجع إلى الشاشة الرئيسية واضغط مطولًا على الأداة لتغيير حجمها إلى ⁦%1$s⁩.</string>
     <string name="config_resize_instruction_unsaved">احفظ هذه الأداة أولًا. ثم ارجع إلى الشاشة الرئيسية واضغط عليها مطولًا لتغيير حجمها إلى ⁦%1$s⁩.</string>
     <string name="home">الرئيسية</string>
-    <string name="config_choose_image_title">اختر صورة الدعاء</string>
-    <string name="config_choose_image_description">اختر أي صورة دعاء صغيرة. تُنسخ إلى مساحة تخزين خاصة لتظل أداتك موثوقة.</string>
+    <string name="config_choose_image_title">اختر صورتك</string>
+    <string name="config_choose_image_description">اختر أي صورة. تُنسخ إلى مساحة تخزين خاصة لضمان بقاء الأداة متاحة.</string>
     <string name="config_choose_image">اختر صورة</string>
     <string name="config_crop_fit">ملاءمة</string>
     <string name="config_crop_fill">ملء وقص</string>
@@ -198,4 +198,31 @@
         <item>جمادى الأولى</item><item>جمادى الآخرة</item><item>رجب</item><item>شعبان</item>
         <item>رمضان</item><item>شوال</item><item>ذو القعدة</item><item>ذو الحجة</item>
     </string-array>
+    <string name="gallery_set_image_name">تعيين صورة</string>
+    <string name="gallery_set_image_description">اعرض أي صورة أو عمل فني على شاشتك الرئيسية.</string>
+    <string name="gallery_pin_fallback">افتح قائمة أدوات الشاشة الرئيسية واختر أداة من My Widgets.</string>
+    <string name="tasbeeh_config_title">أداة التسبيح</string>
+    <string name="tasbeeh_setup">اضغط لإعداد التسبيح</string>
+    <string name="tasbeeh_preview">معاينة الأداة</string>
+    <string name="tasbeeh_choose_dhikr">اختر ذكراً أو اكتب ذكرك</string>
+    <string name="tasbeeh_dhikr">نص الذكر</string>
+    <string name="tasbeeh_meaning">الترجمة أو الوصف</string>
+    <string name="tasbeeh_target">العدد المستهدف</string>
+    <string name="tasbeeh_target_help">أدخل عدداً من 1 إلى 99,999.</string>
+    <string name="tasbeeh_color">لون الأداة</string>
+    <string name="tasbeeh_green">أخضر</string>
+    <string name="tasbeeh_blue">أزرق</string>
+    <string name="tasbeeh_plum">أرجواني</string>
+    <string name="tasbeeh_show_meaning">إظهار الترجمة أو الوصف</string>
+    <string name="tasbeeh_restart">البدء من جديد بعد بلوغ الهدف</string>
+    <string name="tasbeeh_restart_help">تبدأ الضغطة التالية جولة جديدة. عند التعطيل يتوقف العداد عند الهدف.</string>
+    <string name="tasbeeh_reset">تصفير العداد</string>
+    <string name="tasbeeh_reset_pending">سيتم تصفير العداد عند الحفظ</string>
+    <string name="tasbeeh_reset_confirm">تصفير هذه الأداة عند الحفظ؟ ستبقى أعداد الأدوات الأخرى كما هي.</string>
+    <string name="tasbeeh_save">حفظ الأداة</string>
+    <string name="tasbeeh_save_error">تعذر حفظ الأداة. حاول مرة أخرى.</string>
+    <string name="tasbeeh_edit_reset">تعديل / تصفير</string>
+    <string name="tasbeeh_next_round">الجولة التالية</string>
+    <string name="tasbeeh_complete">تم بلوغ الهدف</string>
+    <string name="tasbeeh_counter_description">العدد %1$s. اضغط للعد.</string>
 </resources>

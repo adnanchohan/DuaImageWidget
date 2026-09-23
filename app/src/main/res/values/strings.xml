@@ -1,11 +1,11 @@
 <resources>
     <string name="app_name">My Widgets</string>
 
-    <string name="widget_description">Keep a selected dua image on your home screen</string>
-    <string name="widget_loading">Loading dua…</string>
-    <string name="widget_choose_image">Tap to choose a dua image</string>
-    <string name="widget_image_description">Selected dua image</string>
-    <string name="widget_preview_text">Your dua</string>
+    <string name="widget_description">Keep a selected image on your home screen</string>
+    <string name="widget_loading">Loading image…</string>
+    <string name="widget_choose_image">Tap to choose an image</string>
+    <string name="widget_image_description">Selected image</string>
+    <string name="widget_preview_text">Your image</string>
 
     <string name="status_widget_pin_requested">Choose a place on your home screen, then select your dua image.</string>
     <string name="status_widget_pin_fallback">Open the home-screen widget picker and select My Widgets.</string>
@@ -14,11 +14,11 @@
     <string name="status_prayer_widget_pin_requested">Choose a place on your home screen, then confirm your prayer location.</string>
     <string name="status_prayer_widget_pin_fallback">Open the home-screen widget picker and select Prayer Times.</string>
     <string name="watchfulai_apps">WatchFulAI Apps</string>
-    <string name="home_reminder_pill">Islamic &amp; Useful Widgets</string>
+    <string name="home_reminder_pill">My Widgets</string>
     <string name="home_hero_prefix">Your\u0020</string>
     <string name="home_hero_dua">Widgets</string>
     <string name="home_hero_suffix">,\nat a glance.</string>
-    <string name="home_description">Beautiful Islamic widgets, daily reminders, and useful tools crafted for your home screen.</string>
+    <string name="home_description">Beautiful widgets, daily reminders, and useful tools crafted for your home screen.</string>
     <string name="open_settings">Open settings</string>
     <string name="home_your_widgets_title">Your widgets</string>
     <string name="home_your_widgets_description">View and edit every widget on your home screen.</string>
@@ -74,7 +74,7 @@
     <string name="widgets_back_to_home">Back to home</string>
     <string name="widgets_item_title">Widget %1$d</string>
     <string name="widgets_prayer_title">Prayer Times #%1$d</string>
-    <string name="widgets_dua_title">Dua Image #%1$d</string>
+    <string name="widgets_dua_title">Image #%1$d</string>
     <string name="widgets_needs_image">Needs image</string>
     <string name="widgets_preview_description">Preview of widget %1$d</string>
     <string name="widgets_edit">Edit widget</string>
@@ -116,7 +116,7 @@
     <string name="config_open_app_add_widget">Open app · add another widget</string>
     <string name="config_cancel_return_home">Cancel and return home</string>
     <string name="config_back_to_widgets">Back to your widgets</string>
-    <string name="config_title">Frame your dua</string>
+    <string name="config_title">Frame your image</string>
     <string name="config_preview_current_exact">Previewing the exact current home-screen size.</string>
     <string name="config_preview_target">Previewing the %1$s target size.</string>
     <string name="config_live_preview">Live preview</string>
@@ -141,8 +141,8 @@
     <string name="config_resize_instruction">Return home and long-press the widget to resize to %1$s.</string>
     <string name="config_resize_instruction_unsaved">Save this widget first. Then return home and long-press it to resize to %1$s.</string>
     <string name="home">Home</string>
-    <string name="config_choose_image_title">Choose your dua image</string>
-    <string name="config_choose_image_description">Select any small dua image. It is copied to private storage so your widget remains reliable.</string>
+    <string name="config_choose_image_title">Choose your image</string>
+    <string name="config_choose_image_description">Select any image. It is copied to private storage so your widget remains reliable.</string>
     <string name="config_choose_image">Choose image</string>
     <string name="config_crop_fit">Fit</string>
     <string name="config_crop_fill">Fill &amp; crop</string>
@@ -204,4 +204,32 @@
         <item>Dhu al-Qi’dah</item>
         <item>Dhu al-Hijjah</item>
     </string-array>
+    <string name="gallery_set_image_name">Set an Image</string>
+    <string name="gallery_set_image_description">Display any photo, artwork, or meaningful image on your home screen.</string>
+    <string name="gallery_pin_fallback">Open your home-screen widget picker and select a widget from My Widgets.</string>
+    <string name="tasbeeh_config_title">Tasbeeh widget</string>
+    <string name="tasbeeh_setup">Tap to set up Tasbeeh</string>
+    <string name="tasbeeh_preview">Widget preview</string>
+    <string name="tasbeeh_choose_dhikr">Choose a dhikr or write your own</string>
+    <string name="tasbeeh_dhikr">Dhikr text</string>
+    <string name="tasbeeh_meaning">Translation or subtitle</string>
+    <string name="tasbeeh_target">Target count</string>
+    <string name="tasbeeh_target_help">Enter a target from 1 to 99,999.</string>
+    <string name="tasbeeh_color">Widget color</string>
+    <string name="tasbeeh_green">Green</string>
+    <string name="tasbeeh_blue">Blue</string>
+    <string name="tasbeeh_plum">Plum</string>
+    <string name="tasbeeh_show_meaning">Show translation or subtitle</string>
+    <string name="tasbeeh_restart">Restart after reaching the target</string>
+    <string name="tasbeeh_restart_help">The next tap starts a new round. When off, the counter stops at your target.</string>
+    <string name="tasbeeh_reset">Reset counter</string>
+    <string name="tasbeeh_reset_pending">Counter will reset when saved</string>
+    <string name="tasbeeh_reset_confirm">Reset this widget to zero when you save? Other widgets will keep their counts.</string>
+    <string name="tasbeeh_save">Save widget</string>
+    <string name="tasbeeh_save_error">Could not save the widget. Please try again.</string>
+    <string name="tasbeeh_edit_reset">Edit</string>
+    <string name="tasbeeh_next_round">Next round</string>
+    <string name="tasbeeh_complete">Target reached</string>
+    <string name="tasbeeh_counter_description">Count %1$s. Tap to count.</string>
+    <string name="tasbeeh_initial_count" translatable="false">0 / 33</string>
 </resources>

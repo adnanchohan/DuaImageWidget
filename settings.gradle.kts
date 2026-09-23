@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DuaImageWidget"
+rootProject.name = "MyWidgets"
 include(":app")
  

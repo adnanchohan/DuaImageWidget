@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.watchfulai.duaimagewidget"
+    namespace = "com.watchfulai.mywidgets"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.watchfulai.duaimagewidget"
+        applicationId = "com.watchfulai.mywidgets"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
