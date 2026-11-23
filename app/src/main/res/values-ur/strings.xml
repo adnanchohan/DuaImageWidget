@@ -48,9 +48,26 @@
     <string name="home_showcase_dua" translatable="false">رَبِّ زِدْنِي عِلْمًا</string>
     <string name="home_showcase_translation">اے میرے رب! میرے علم میں اضافہ فرما۔</string>
     <string name="home_showcase_size_pill">ہر ویجٹ سائز کے مطابق</string>
+    <string name="showcase_category_islamic">اسلامک</string>
+    <string name="showcase_category_general">جنرل</string>
     <string name="showcase_tab_prayer">نماز کے اوقات</string>
     <string name="showcase_tab_dua">دعا امیج</string>
     <string name="showcase_tab_tasbeeh">تسبیح</string>
+    <string name="showcase_tab_image">امیج</string>
+    <string name="showcase_tab_notes">نوٹس</string>
+    <string name="showcase_image_title">فوٹو فریم</string>
+    <string name="showcase_image_badge">ایچ ڈی</string>
+    <string name="showcase_image_caption">اپنے پسندیدہ لمحات کو ہوم اسکرین پر سجائیں</string>
+    <string name="showcase_image_feature_crop">کسٹم کراپ</string>
+    <string name="showcase_image_feature_fit">فٹ اور فِل</string>
+    <string name="showcase_image_feature_private">پرائیویٹ اسٹوریج</string>
+    <string name="showcase_notes_title">فوری نوٹس</string>
+    <string name="showcase_notes_badge">پن شدہ</string>
+    <string name="showcase_notes_heading">روزانہ کی ترجیحات</string>
+    <string name="showcase_notes_content">• صبح کا جائزہ اور چائے\n• پراجیکٹ کے اہداف کا جائزہ\n• شام کی فیملی واک</string>
+    <string name="showcase_notes_feature_edit">ترمیم کے لیے ٹیپ کریں</string>
+    <string name="showcase_notes_feature_style">کسٹم رنگ</string>
+    <string name="showcase_notes_feature_lock">فوری رسائی</string>
     <string name="showcase_prayer_next">اگلی: عصر 2 گھنٹے 15 منٹ میں</string>
     <string name="showcase_prayer_city">لندن، برطانیہ</string>
     <string name="showcase_prayer_hijri">15 رمضان 1447 ھ</string>

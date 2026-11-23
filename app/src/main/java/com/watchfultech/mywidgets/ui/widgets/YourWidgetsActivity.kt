@@ -75,6 +75,7 @@ import com.watchfultech.mywidgets.prayer.PrayerTimesWidgetProvider
 import com.watchfultech.mywidgets.prayer.PrayerWidgetRepository
 import com.watchfultech.mywidgets.ui.prayer.PrayerWidgetConfigurationActivity
 import com.watchfultech.mywidgets.ui.theme.Gold300
+import com.watchfultech.mywidgets.ui.theme.LocalWidgetColors
 import com.watchfultech.mywidgets.widget.DuaImageWidgetReceiver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -628,6 +629,7 @@ private fun PrayerWidgetSummaryCard(
                 }
             }
 
+            val widgetColors = LocalWidgetColors.current
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -635,8 +637,8 @@ private fun PrayerWidgetSummaryCard(
                     .background(
                         androidx.compose.ui.graphics.Brush.verticalGradient(
                             listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                                widgetColors.backgroundStart,
+                                widgetColors.backgroundEnd,
                             ),
                         ),
                     )
@@ -672,27 +674,27 @@ private fun PrayerWidgetSummaryCard(
                                 Icon(
                                     painter = painterResource(R.drawable.ic_mosque),
                                     contentDescription = null,
-                                    tint = Gold300,
+                                    tint = widgetColors.gold,
                                     modifier = Modifier.size(16.dp),
                                 )
                                 Text(
                                     text = widget.locationLabel ?: "",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = androidx.compose.ui.graphics.Color.White,
+                                    color = widgetColors.text,
                                 )
                             }
                             Text(
                                 text = "${schedule.hijriDate.day} ${schedule.hijriDate.month} ${schedule.hijriDate.year} AH",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Gold300,
+                                color = widgetColors.gold,
                             )
                         }
 
                         // Hero card: Next prayer & sunrise & LIVE badge
                         Surface(
                             shape = RoundedCornerShape(12.dp),
-                            color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.15f),
+                            color = widgetColors.heroBg,
                         ) {
                             Row(
                                 modifier = Modifier
@@ -707,7 +709,7 @@ private fun PrayerWidgetSummaryCard(
                                             R.string.prayer_next_starts_in,
                                             nextPrayer.name.localizedName(context),
                                         ),
-                                        color = androidx.compose.ui.graphics.Color.White,
+                                        color = widgetColors.text,
                                         style = MaterialTheme.typography.titleSmall,
                                         fontWeight = FontWeight.Bold,
                                     )
@@ -716,18 +718,18 @@ private fun PrayerWidgetSummaryCard(
                                             R.string.prayer_sunrise_value,
                                             timeFormatter.format(Date(schedule.sunriseEpochMillis)),
                                         ),
-                                        color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f),
+                                        color = widgetColors.secondaryText,
                                         style = MaterialTheme.typography.labelSmall,
                                     )
                                 }
                                 Surface(
                                     shape = CircleShape,
-                                    color = Gold300,
+                                    color = widgetColors.accent,
                                 ) {
                                     Text(
                                         "LIVE",
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                        color = androidx.compose.ui.graphics.Color(0xFF3E2723),
+                                        color = widgetColors.liveText,
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Black,
                                     )
@@ -744,7 +746,7 @@ private fun PrayerWidgetSummaryCard(
                                 val isCurrent = prayer.name == currentPrayer
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
-                                    color = if (isCurrent) Gold300 else androidx.compose.ui.graphics.Color.White.copy(alpha = 0.12f),
+                                    color = if (isCurrent) widgetColors.accent else widgetColors.slot,
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
@@ -754,7 +756,7 @@ private fun PrayerWidgetSummaryCard(
                                             text = prayer.name.localizedName(context),
                                             style = MaterialTheme.typography.labelSmall,
                                             fontSize = 10.sp,
-                                            color = if (isCurrent) androidx.compose.ui.graphics.Color(0xFF3E2723) else androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f),
+                                            color = if (isCurrent) widgetColors.accentText else widgetColors.secondaryText,
                                             fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                                         )
                                         Text(
@@ -762,7 +764,7 @@ private fun PrayerWidgetSummaryCard(
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 11.sp,
-                                            color = if (isCurrent) androidx.compose.ui.graphics.Color(0xFF3E2723) else androidx.compose.ui.graphics.Color.White,
+                                            color = if (isCurrent) widgetColors.accentText else widgetColors.text,
                                         )
                                     }
                                 }

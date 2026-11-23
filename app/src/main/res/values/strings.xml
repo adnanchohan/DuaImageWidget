@@ -51,9 +51,26 @@
     <string name="home_showcase_dua" translatable="false">رَبِّ زِدْنِي عِلْمًا</string>
     <string name="home_showcase_translation">My Lord, increase me in knowledge.</string>
     <string name="home_showcase_size_pill">Fits every widget size</string>
+    <string name="showcase_category_islamic">Islamic</string>
+    <string name="showcase_category_general">General</string>
     <string name="showcase_tab_prayer">Prayer Times</string>
     <string name="showcase_tab_dua">Dua Image</string>
     <string name="showcase_tab_tasbeeh">Tasbeeh</string>
+    <string name="showcase_tab_image">Image</string>
+    <string name="showcase_tab_notes">Notes</string>
+    <string name="showcase_image_title">Photo Frame</string>
+    <string name="showcase_image_badge">HD</string>
+    <string name="showcase_image_caption">Keep your favorite moments on your home screen</string>
+    <string name="showcase_image_feature_crop">Custom crop</string>
+    <string name="showcase_image_feature_fit">Fit &amp; Fill</string>
+    <string name="showcase_image_feature_private">Private storage</string>
+    <string name="showcase_notes_title">Quick Notes</string>
+    <string name="showcase_notes_badge">PINNED</string>
+    <string name="showcase_notes_heading">Daily Priorities</string>
+    <string name="showcase_notes_content">• Morning coffee &amp; reflection\n• Review project priorities\n• Evening walk with family</string>
+    <string name="showcase_notes_feature_edit">Tap to edit</string>
+    <string name="showcase_notes_feature_style">Custom colors</string>
+    <string name="showcase_notes_feature_lock">Quick access</string>
     <string name="showcase_prayer_next">Next: Asr in 2h 15m</string>
     <string name="showcase_prayer_city">London, UK</string>
     <string name="showcase_prayer_hijri">15 Ramadan 1447 AH</string>

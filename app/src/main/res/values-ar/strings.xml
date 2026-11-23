@@ -48,9 +48,26 @@
     <string name="home_showcase_dua" translatable="false">رَبِّ زِدْنِي عِلْمًا</string>
     <string name="home_showcase_translation">يا رب، زدني علمًا.</string>
     <string name="home_showcase_size_pill">يناسب كل أحجام الأدوات</string>
+    <string name="showcase_category_islamic">إسلامي</string>
+    <string name="showcase_category_general">عام</string>
     <string name="showcase_tab_prayer">مواقيت الصلاة</string>
     <string name="showcase_tab_dua">صورة دعاء</string>
     <string name="showcase_tab_tasbeeh">تسبيح</string>
+    <string name="showcase_tab_image">صورة</string>
+    <string name="showcase_tab_notes">ملاحظات</string>
+    <string name="showcase_image_title">إطار الصور</string>
+    <string name="showcase_image_badge">HD</string>
+    <string name="showcase_image_caption">احتفظ بذكرياتك ولحظاتك المفضلة على شاشتك الرئيسية</string>
+    <string name="showcase_image_feature_crop">قص مخصص</string>
+    <string name="showcase_image_feature_fit">ملاءمة وملء</string>
+    <string name="showcase_image_feature_private">تخزين آمن</string>
+    <string name="showcase_notes_title">ملاحظات سريعة</string>
+    <string name="showcase_notes_badge">مثبت</string>
+    <string name="showcase_notes_heading">الأولويات اليومية</string>
+    <string name="showcase_notes_content">• تأمل الصباح والقهوة\n• مراجعة أهداف المشروع\n• نزهة مسائية مع العائلة</string>
+    <string name="showcase_notes_feature_edit">انقر للتعديل</string>
+    <string name="showcase_notes_feature_style">ألوان مخصصة</string>
+    <string name="showcase_notes_feature_lock">وصول سريع</string>
     <string name="showcase_prayer_next">التالي: العصر خلال 2س 15د</string>
     <string name="showcase_prayer_city">لندن، المملكة المتحدة</string>
     <string name="showcase_prayer_hijri">15 رمضان 1447 هـ</string>

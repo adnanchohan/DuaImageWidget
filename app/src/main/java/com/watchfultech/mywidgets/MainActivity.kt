@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,6 +59,7 @@ import com.watchfultech.mywidgets.ui.settings.SettingsActivity
 import com.watchfultech.mywidgets.ui.theme.DuaImageWidgetTheme
 import com.watchfultech.mywidgets.ui.theme.Gold300
 import com.watchfultech.mywidgets.ui.theme.Gold500
+import com.watchfultech.mywidgets.ui.theme.LocalWidgetColors
 import com.watchfultech.mywidgets.ui.widgets.WidgetGalleryActivity
 import com.watchfultech.mywidgets.ui.widgets.YourWidgetsActivity
 import androidx.compose.animation.AnimatedContent
@@ -182,7 +184,9 @@ private fun HomeScreen(
                 onClick = onWidgetGallery,
             )
 
-            WidgetShowcase()
+            IslamicWidgetShowcase()
+
+            GeneralWidgetShowcase()
 
             DuaSurfaceCard(modifier = Modifier.fillMaxWidth()) {
                 Column(
@@ -338,16 +342,21 @@ private fun AddWidgetTile(
     }
 }
 
-private enum class ShowcaseTab {
+private enum class IslamicShowcaseTab {
     PRAYER,
     DUA,
     TASBEEH,
 }
 
+private enum class GeneralShowcaseTab {
+    IMAGE,
+    NOTES,
+}
+
 @Composable
-private fun WidgetShowcase() {
+private fun IslamicWidgetShowcase() {
     var selectedTab by androidx.compose.runtime.remember {
-        androidx.compose.runtime.mutableStateOf(ShowcaseTab.PRAYER)
+        androidx.compose.runtime.mutableStateOf(IslamicShowcaseTab.PRAYER)
     }
 
     DuaSurfaceCard(
@@ -358,6 +367,20 @@ private fun WidgetShowcase() {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            // Label
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.showcase_category_islamic),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+
             // Showcase Tab Selector
             Row(
                 modifier = Modifier
@@ -371,21 +394,21 @@ private fun WidgetShowcase() {
             ) {
                 ShowcaseTabButton(
                     label = stringResource(R.string.showcase_tab_prayer),
-                    selected = selectedTab == ShowcaseTab.PRAYER,
+                    selected = selectedTab == IslamicShowcaseTab.PRAYER,
                     modifier = Modifier.weight(1f),
-                    onClick = { selectedTab = ShowcaseTab.PRAYER },
+                    onClick = { selectedTab = IslamicShowcaseTab.PRAYER },
                 )
                 ShowcaseTabButton(
                     label = stringResource(R.string.showcase_tab_dua),
-                    selected = selectedTab == ShowcaseTab.DUA,
+                    selected = selectedTab == IslamicShowcaseTab.DUA,
                     modifier = Modifier.weight(1f),
-                    onClick = { selectedTab = ShowcaseTab.DUA },
+                    onClick = { selectedTab = IslamicShowcaseTab.DUA },
                 )
                 ShowcaseTabButton(
                     label = stringResource(R.string.showcase_tab_tasbeeh),
-                    selected = selectedTab == ShowcaseTab.TASBEEH,
+                    selected = selectedTab == IslamicShowcaseTab.TASBEEH,
                     modifier = Modifier.weight(1f),
-                    onClick = { selectedTab = ShowcaseTab.TASBEEH },
+                    onClick = { selectedTab = IslamicShowcaseTab.TASBEEH },
                 )
             }
 
@@ -393,12 +416,80 @@ private fun WidgetShowcase() {
             AnimatedContent(
                 targetState = selectedTab,
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "showcase_transition",
+                label = "islamic_showcase_transition",
             ) { tab ->
                 when (tab) {
-                    ShowcaseTab.PRAYER -> PrayerShowcaseCard()
-                    ShowcaseTab.DUA -> DuaShowcaseCard()
-                    ShowcaseTab.TASBEEH -> TasbeehShowcaseCard()
+                    IslamicShowcaseTab.PRAYER -> PrayerShowcaseCard()
+                    IslamicShowcaseTab.DUA -> DuaShowcaseCard()
+                    IslamicShowcaseTab.TASBEEH -> TasbeehShowcaseCard()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GeneralWidgetShowcase() {
+    var selectedTab by androidx.compose.runtime.remember {
+        androidx.compose.runtime.mutableStateOf(GeneralShowcaseTab.IMAGE)
+    }
+
+    DuaSurfaceCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            // Label
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.showcase_category_general),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+
+            // Showcase Tab Selector
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        MaterialTheme.colorScheme.surface,
+                        RoundedCornerShape(16.dp),
+                    )
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                ShowcaseTabButton(
+                    label = stringResource(R.string.showcase_tab_image),
+                    selected = selectedTab == GeneralShowcaseTab.IMAGE,
+                    modifier = Modifier.weight(1f),
+                    onClick = { selectedTab = GeneralShowcaseTab.IMAGE },
+                )
+                ShowcaseTabButton(
+                    label = stringResource(R.string.showcase_tab_notes),
+                    selected = selectedTab == GeneralShowcaseTab.NOTES,
+                    modifier = Modifier.weight(1f),
+                    onClick = { selectedTab = GeneralShowcaseTab.NOTES },
+                )
+            }
+
+            // Showcase Preview Card with smooth animation
+            AnimatedContent(
+                targetState = selectedTab,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "general_showcase_transition",
+            ) { tab ->
+                when (tab) {
+                    GeneralShowcaseTab.IMAGE -> ImageShowcaseCard()
+                    GeneralShowcaseTab.NOTES -> NotesShowcaseCard()
                 }
             }
         }
@@ -430,14 +521,15 @@ private fun ShowcaseTabButton(
 
 @Composable
 private fun PrayerShowcaseCard() {
+    val widgetColors = LocalWidgetColors.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                        widgetColors.backgroundStart,
+                        widgetColors.backgroundEnd,
                     ),
                 ),
                 shape = RoundedCornerShape(22.dp),
@@ -457,19 +549,19 @@ private fun PrayerShowcaseCard() {
                     Icon(
                         painter = painterResource(R.drawable.ic_mosque),
                         contentDescription = null,
-                        tint = Gold300,
+                        tint = widgetColors.gold,
                         modifier = Modifier.size(18.dp),
                     )
                     Text(
                         stringResource(R.string.showcase_prayer_city),
-                        color = Color.White,
+                        color = widgetColors.text,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                     )
                 }
                 Text(
                     stringResource(R.string.showcase_prayer_hijri),
-                    color = Gold300,
+                    color = widgetColors.gold,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Medium,
                 )
@@ -477,7 +569,7 @@ private fun PrayerShowcaseCard() {
 
             Surface(
                 shape = RoundedCornerShape(14.dp),
-                color = Color.White.copy(alpha = 0.15f),
+                color = widgetColors.heroBg,
             ) {
                 Row(
                     modifier = Modifier
@@ -489,24 +581,24 @@ private fun PrayerShowcaseCard() {
                     Column {
                         Text(
                             stringResource(R.string.showcase_prayer_next),
-                            color = Color.White,
+                            color = widgetColors.text,
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
                             "Sunrise: 06:12",
-                            color = Color.White.copy(alpha = 0.8f),
+                            color = widgetColors.secondaryText,
                             style = MaterialTheme.typography.labelSmall,
                         )
                     }
                     Surface(
                         shape = CircleShape,
-                        color = Gold300,
+                        color = widgetColors.accent,
                     ) {
                         Text(
                             "LIVE",
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                            color = Color(0xFF3E2723),
+                            color = widgetColors.liveText,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
                         )
@@ -529,7 +621,7 @@ private fun PrayerShowcaseCard() {
                     val isCurrent = name == "Asr"
                     Surface(
                         shape = RoundedCornerShape(10.dp),
-                        color = if (isCurrent) Gold300 else Color.White.copy(alpha = 0.12f),
+                        color = if (isCurrent) widgetColors.accent else widgetColors.slot,
                     ) {
                         Column(
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
@@ -537,14 +629,14 @@ private fun PrayerShowcaseCard() {
                         ) {
                             Text(
                                 text = name,
-                                color = if (isCurrent) Color(0xFF3E2723) else Color.White.copy(alpha = 0.8f),
+                                color = if (isCurrent) widgetColors.accentText else widgetColors.secondaryText,
                                 style = MaterialTheme.typography.labelSmall,
                                 fontSize = 10.sp,
                                 fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                             )
                             Text(
                                 text = time,
-                                color = if (isCurrent) Color(0xFF3E2723) else Color.White,
+                                color = if (isCurrent) widgetColors.accentText else widgetColors.text,
                                 style = MaterialTheme.typography.labelSmall,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -559,14 +651,15 @@ private fun PrayerShowcaseCard() {
 
 @Composable
 private fun DuaShowcaseCard() {
+    val widgetColors = LocalWidgetColors.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                        widgetColors.backgroundStart,
+                        widgetColors.backgroundEnd,
                     ),
                 ),
                 shape = RoundedCornerShape(22.dp),
@@ -581,19 +674,19 @@ private fun DuaShowcaseCard() {
             Box(
                 modifier = Modifier
                     .size(8.dp)
-                    .background(Gold300, CircleShape),
+                    .background(widgetColors.gold, CircleShape),
             )
             Text(
                 text = stringResource(R.string.home_showcase_dua),
                 textAlign = TextAlign.Center,
-                color = Color.White,
+                color = widgetColors.text,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
                 text = stringResource(R.string.home_showcase_translation),
                 textAlign = TextAlign.Center,
-                color = Color.White.copy(alpha = 0.85f),
+                color = widgetColors.secondaryText,
                 style = MaterialTheme.typography.bodySmall,
             )
             DuaPill(
@@ -605,14 +698,15 @@ private fun DuaShowcaseCard() {
 
 @Composable
 private fun TasbeehShowcaseCard() {
+    val widgetColors = LocalWidgetColors.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                        widgetColors.backgroundStart,
+                        widgetColors.backgroundEnd,
                     ),
                 ),
                 shape = RoundedCornerShape(22.dp),
@@ -635,33 +729,33 @@ private fun TasbeehShowcaseCard() {
                     Icon(
                         painter = painterResource(R.drawable.ic_counter),
                         contentDescription = null,
-                        tint = Gold300,
+                        tint = widgetColors.gold,
                         modifier = Modifier.size(16.dp),
                     )
                     Text(
                         stringResource(R.string.gallery_tasbeeh_name),
-                        color = Gold300,
+                        color = widgetColors.gold,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                     )
                 }
                 Text(
                     text = stringResource(R.string.showcase_tasbeeh_dhikr),
-                    color = Color.White,
+                    color = widgetColors.text,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
                     text = stringResource(R.string.showcase_tasbeeh_meaning),
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = widgetColors.secondaryText,
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
 
             Surface(
                 shape = CircleShape,
-                color = Color.White.copy(alpha = 0.15f),
-                border = androidx.compose.foundation.BorderStroke(2.dp, Gold300),
+                color = widgetColors.heroBg,
+                border = androidx.compose.foundation.BorderStroke(2.dp, widgetColors.gold),
             ) {
                 Column(
                     modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
@@ -669,16 +763,284 @@ private fun TasbeehShowcaseCard() {
                 ) {
                     Text(
                         text = stringResource(R.string.showcase_tasbeeh_count),
-                        color = Color.White,
+                        color = widgetColors.text,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
                         text = stringResource(R.string.showcase_tasbeeh_tap),
-                        color = Gold300,
+                        color = widgetColors.gold,
                         style = MaterialTheme.typography.labelSmall,
                         fontSize = 10.sp,
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ImageShowcaseCard() {
+    val widgetColors = LocalWidgetColors.current
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        widgetColors.backgroundStart,
+                        widgetColors.backgroundEnd,
+                    ),
+                ),
+                shape = RoundedCornerShape(22.dp),
+            )
+            .padding(18.dp),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_image),
+                        contentDescription = null,
+                        tint = widgetColors.gold,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        stringResource(R.string.showcase_image_title),
+                        color = widgetColors.text,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Surface(
+                    shape = CircleShape,
+                    color = widgetColors.accent,
+                ) {
+                    Text(
+                        stringResource(R.string.showcase_image_badge),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        color = widgetColors.accentText,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                    )
+                }
+            }
+
+            // Hero Image Preview Frame
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = widgetColors.heroBg,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                            .background(
+                                brush = Brush.linearGradient(
+                                    colors = if (widgetColors.isDark) {
+                                        listOf(Color(0xFF143B33), Color(0xFF0D2822))
+                                    } else {
+                                        listOf(Color(0xFF236553), Color(0xFF17473A))
+                                    },
+                                ),
+                                shape = RoundedCornerShape(10.dp),
+                            )
+                            .border(
+                                width = 1.dp,
+                                color = widgetColors.gold.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(10.dp),
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_crop),
+                                contentDescription = null,
+                                tint = widgetColors.gold,
+                                modifier = Modifier.size(28.dp),
+                            )
+                            Text(
+                                stringResource(R.string.showcase_image_caption),
+                                color = widgetColors.text,
+                                style = MaterialTheme.typography.labelSmall,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 12.dp),
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Feature Badges Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                listOf(
+                    stringResource(R.string.showcase_image_feature_crop),
+                    stringResource(R.string.showcase_image_feature_fit),
+                    stringResource(R.string.showcase_image_feature_private),
+                ).forEach { feature ->
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = widgetColors.slot,
+                    ) {
+                        Text(
+                            text = feature,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            color = widgetColors.text,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotesShowcaseCard() {
+    val widgetColors = LocalWidgetColors.current
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        widgetColors.backgroundStart,
+                        widgetColors.backgroundEnd,
+                    ),
+                ),
+                shape = RoundedCornerShape(22.dp),
+            )
+            .padding(18.dp),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_edit),
+                        contentDescription = null,
+                        tint = widgetColors.gold,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        stringResource(R.string.showcase_notes_title),
+                        color = widgetColors.text,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Surface(
+                    shape = CircleShape,
+                    color = widgetColors.accent,
+                ) {
+                    Text(
+                        stringResource(R.string.showcase_notes_badge),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        color = widgetColors.accentText,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                    )
+                }
+            }
+
+            // Note Content Frame
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = widgetColors.heroBg,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            stringResource(R.string.showcase_notes_heading),
+                            color = widgetColors.gold,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Surface(
+                            shape = CircleShape,
+                            color = widgetColors.slot,
+                        ) {
+                            Text(
+                                "Today",
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                color = widgetColors.text,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 9.sp,
+                            )
+                        }
+                    }
+                    Text(
+                        text = stringResource(R.string.showcase_notes_content),
+                        color = widgetColors.text,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 11.sp,
+                        lineHeight = 16.sp,
+                    )
+                }
+            }
+
+            // Feature Badges Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                listOf(
+                    stringResource(R.string.showcase_notes_feature_edit),
+                    stringResource(R.string.showcase_notes_feature_style),
+                    stringResource(R.string.showcase_notes_feature_lock),
+                ).forEach { feature ->
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = widgetColors.slot,
+                    ) {
+                        Text(
+                            text = feature,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            color = widgetColors.text,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
                 }
             }
         }
