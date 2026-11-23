@@ -537,28 +537,18 @@ private fun PrayerShowcaseCard() {
             .padding(18.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Top Row: Mosque Icon & Hijri Date (Location shifted to Next Prayer tile)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_mosque),
-                        contentDescription = null,
-                        tint = widgetColors.gold,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Text(
-                        stringResource(R.string.showcase_prayer_city),
-                        color = widgetColors.text,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
+                Icon(
+                    painter = painterResource(R.drawable.ic_mosque),
+                    contentDescription = null,
+                    tint = widgetColors.gold,
+                    modifier = Modifier.size(18.dp),
+                )
                 Text(
                     stringResource(R.string.showcase_prayer_hijri),
                     color = widgetColors.gold,
@@ -567,6 +557,7 @@ private fun PrayerShowcaseCard() {
                 )
             }
 
+            // Hero Card: Next prayer & (Location • Sunrise) without LIVE badge
             Surface(
                 shape = RoundedCornerShape(14.dp),
                 color = widgetColors.heroBg,
@@ -575,7 +566,7 @@ private fun PrayerShowcaseCard() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 14.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column {
@@ -585,46 +576,50 @@ private fun PrayerShowcaseCard() {
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                         )
-                        Text(
-                            "Sunrise: 06:12",
-                            color = widgetColors.secondaryText,
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    }
-                    Surface(
-                        shape = CircleShape,
-                        color = widgetColors.accent,
-                    ) {
-                        Text(
-                            "LIVE",
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                            color = widgetColors.liveText,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                stringResource(R.string.showcase_prayer_city),
+                                color = widgetColors.secondaryText,
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                            Text(
+                                "•",
+                                color = widgetColors.secondaryText,
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                            Text(
+                                "Sunrise: 06:12",
+                                color = widgetColors.secondaryText,
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                        }
                     }
                 }
             }
 
+            // Bottom Slots: 5 prayer times with small am/pm and full names
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 val prayers = listOf(
-                    "Fajr" to "05:15",
-                    "Dhuhr" to "12:30",
-                    "Asr" to "15:45",
-                    "Maghrib" to "18:10",
-                    "Isha" to "19:35",
+                    Triple("Fajr", "05:15", "am"),
+                    Triple("Dhuhr", "12:30", "pm"),
+                    Triple("Asr", "03:45", "pm"),
+                    Triple("Maghrib", "06:10", "pm"),
+                    Triple("Isha", "07:35", "pm"),
                 )
-                prayers.forEach { (name, time) ->
+                prayers.forEach { (name, time, amPm) ->
                     val isCurrent = name == "Asr"
                     Surface(
                         shape = RoundedCornerShape(10.dp),
                         color = if (isCurrent) widgetColors.accent else widgetColors.slot,
                     ) {
                         Column(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text(
@@ -633,14 +628,28 @@ private fun PrayerShowcaseCard() {
                                 style = MaterialTheme.typography.labelSmall,
                                 fontSize = 10.sp,
                                 fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                                maxLines = 1,
                             )
-                            Text(
-                                text = time,
-                                color = if (isCurrent) widgetColors.accentText else widgetColors.text,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
+                            Row(
+                                verticalAlignment = Alignment.Bottom,
+                                horizontalArrangement = Arrangement.spacedBy(1.dp),
+                            ) {
+                                Text(
+                                    text = time,
+                                    color = if (isCurrent) widgetColors.accentText else widgetColors.text,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                Text(
+                                    text = amPm,
+                                    color = if (isCurrent) widgetColors.accentText else widgetColors.text,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(bottom = 0.5.dp),
+                                )
+                            }
                         }
                     }
                 }

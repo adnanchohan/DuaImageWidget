@@ -20,7 +20,8 @@ object PrayerWidgetScheduler {
             set(Calendar.MILLISECOND, 0)
             timeInMillis
         }
-        val triggerAt = minOf(nextPrayer, nextMidnight).coerceAtLeast(now + MINIMUM_DELAY_MILLIS)
+        val nextPeriodic = now + PERIODIC_REFRESH_MILLIS
+        val triggerAt = minOf(nextPrayer, nextMidnight, nextPeriodic).coerceAtLeast(now + MINIMUM_DELAY_MILLIS)
         val alarmManager = context.getSystemService(AlarmManager::class.java)
         val pendingIntent = refreshPendingIntent(context, appWidgetId)
 
@@ -44,6 +45,7 @@ object PrayerWidgetScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
+    private const val PERIODIC_REFRESH_MILLIS = 15 * 60_000L
     private const val TRANSITION_GRACE_MILLIS = 2_000L
     private const val MINIMUM_DELAY_MILLIS = 5_000L
 }

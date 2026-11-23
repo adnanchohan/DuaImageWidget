@@ -4,8 +4,10 @@ import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
-import android.os.SystemClock
+import android.text.SpannableString
+import android.text.Spanned
 import android.text.format.DateFormat
+import android.text.style.RelativeSizeSpan
 import android.view.View
 import android.widget.RemoteViews
 import com.watchfultech.mywidgets.R
@@ -55,39 +57,52 @@ object PrayerTimesWidgetUpdater {
         val now = System.currentTimeMillis()
         val currentPrayer = schedule.currentPrayerAt(now)
         val nextPrayer = schedule.nextPrayerAt(now)
-        val timeFormatter = widgetTimeFormatter(context, schedule.timezoneId)
+
         val views = RemoteViews(context.packageName, R.layout.prayer_times_widget).apply {
-            setTextViewText(R.id.prayer_location, config.locationLabel)
+            // Top Row: Hijri Date (Location shifted to hero tile)
             setTextViewText(
                 R.id.prayer_hijri_date,
                 formatHijriDate(context, schedule.hijriDateAt(now)),
             )
-            setTextViewText(
-                R.id.prayer_sunrise,
-                context.getString(
-                    R.string.prayer_sunrise_value,
-                    timeFormatter.format(Date(schedule.sunriseEpochMillis)),
-                ),
-            )
-            setTextViewText(
-                R.id.prayer_next_label,
-                context.getString(
-                    R.string.prayer_next_starts_in,
-                    nextPrayer.name.localizedName(context),
-                ),
-            )
-            setChronometer(
-                R.id.prayer_countdown,
-                SystemClock.elapsedRealtime() + (nextPrayer.epochMillis - now).coerceAtLeast(0L),
-                null,
-                true,
-            )
-            setChronometerCountDown(R.id.prayer_countdown, true)
 
+            // Hero Card: Next prayer countdown without seconds
+            val diffMillis = (nextPrayer.epochMillis - now).coerceAtLeast(0L)
+            val totalMinutes = (diffMillis + 59_999L) / 60_000L
+            val hours = totalMinutes / 60
+            val minutes = totalMinutes % 60
+            val timeRemaining = when {
+                hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"
+                hours > 0 -> "${hours}h"
+                minutes > 0 -> "${minutes}m"
+                else -> "< 1m"
+            }
+            val nextPrefix = context.getString(
+                R.string.prayer_next_starts_in,
+                nextPrayer.name.localizedName(context),
+            ).trim()
+            setTextViewText(R.id.prayer_next_label, "$nextPrefix $timeRemaining")
+
+            // Hero Card: Location right before sunrise
+            val sunriseTime = formatSimpleTime(context, schedule.sunriseEpochMillis, schedule.timezoneId)
+            val sunriseText = context.getString(R.string.prayer_sunrise_value, sunriseTime)
+            val location = config.locationLabel.trim()
+            if (location.isNotEmpty()) {
+                setTextViewText(R.id.prayer_location, location)
+                setViewVisibility(R.id.prayer_sunrise_bullet, View.VISIBLE)
+            } else {
+                setTextViewText(R.id.prayer_location, "")
+                setViewVisibility(R.id.prayer_sunrise_bullet, View.GONE)
+            }
+            setTextViewText(R.id.prayer_sunrise, sunriseText)
+
+            // Bottom Slots: 5 prayer times with small am/pm
             schedule.prayers.forEach { prayer ->
                 val viewIds = slotViewIds.getValue(prayer.name)
                 setTextViewText(viewIds.name, prayer.name.localizedName(context))
-                setTextViewText(viewIds.time, timeFormatter.format(Date(prayer.epochMillis)))
+                setTextViewText(
+                    viewIds.time,
+                    formatPrayerTimeWithSmallAmPm(context, prayer.epochMillis, schedule.timezoneId),
+                )
                 val isActive = currentPrayer == prayer.name
                 setInt(
                     viewIds.container,
@@ -149,11 +164,44 @@ object PrayerTimesWidgetUpdater {
         return schedule.dateKey == formatter.format(Date())
     }
 
-    private fun widgetTimeFormatter(context: Context, timezoneId: String): SimpleDateFormat {
+    private fun formatSimpleTime(context: Context, epochMillis: Long, timezoneId: String): String {
         val pattern = if (DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm"
         return SimpleDateFormat(pattern, Locale.getDefault()).apply {
             timeZone = TimeZone.getTimeZone(timezoneId)
+        }.format(Date(epochMillis))
+    }
+
+    private fun formatPrayerTimeWithSmallAmPm(
+        context: Context,
+        epochMillis: Long,
+        timezoneId: String,
+    ): CharSequence {
+        val date = Date(epochMillis)
+        if (DateFormat.is24HourFormat(context)) {
+            val sdf = SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone(timezoneId)
+            }
+            return sdf.format(date)
         }
+
+        val timeFormat = SimpleDateFormat("h:mm", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone(timezoneId)
+        }
+        val amPmFormat = SimpleDateFormat("a", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone(timezoneId)
+        }
+        val timeStr = timeFormat.format(date)
+        val amPmStr = amPmFormat.format(date).lowercase(Locale.getDefault())
+        val fullStr = "$timeStr $amPmStr"
+        val spannable = SpannableString(fullStr)
+        val amPmStart = fullStr.length - amPmStr.length
+        spannable.setSpan(
+            RelativeSizeSpan(0.72f),
+            amPmStart,
+            fullStr.length,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+        )
+        return spannable
     }
 
     private fun formatHijriDate(context: Context, date: HijriDate): String {

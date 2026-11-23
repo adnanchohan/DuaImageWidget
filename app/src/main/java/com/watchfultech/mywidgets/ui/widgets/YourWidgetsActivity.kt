@@ -661,37 +661,30 @@ private fun PrayerWidgetSummaryCard(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        // Top bar: Location & Hijri
+                        // Top bar: Mosque Icon + Hijri date (Location shifted to Next Prayer tile)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_mosque),
-                                    contentDescription = null,
-                                    tint = widgetColors.gold,
-                                    modifier = Modifier.size(16.dp),
-                                )
-                                Text(
-                                    text = widget.locationLabel ?: "",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = widgetColors.text,
-                                )
+                            Icon(
+                                painter = painterResource(R.drawable.ic_mosque),
+                                contentDescription = null,
+                                tint = widgetColors.gold,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            val monthNames = context.resources.getStringArray(R.array.hijri_month_names)
+                            val monthName = monthNames.getOrElse(schedule.hijriDate.month - 1) {
+                                schedule.hijriDate.month.toString()
                             }
                             Text(
-                                text = "${schedule.hijriDate.day} ${schedule.hijriDate.month} ${schedule.hijriDate.year} AH",
+                                text = "${schedule.hijriDate.day} $monthName ${schedule.hijriDate.year} AH",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = widgetColors.gold,
                             )
                         }
 
-                        // Hero card: Next prayer & sunrise & LIVE badge
+                        // Hero card: Next prayer & (Location • Sunrise) without LIVE badge
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = widgetColors.heroBg,
@@ -700,56 +693,79 @@ private fun PrayerWidgetSummaryCard(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 12.dp, vertical = 8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
+                                horizontalArrangement = Arrangement.Start,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Column {
+                                    val diffMillis = (nextPrayer.epochMillis - now).coerceAtLeast(0L)
+                                    val totalMinutes = (diffMillis + 59_999L) / 60_000L
+                                    val hours = totalMinutes / 60
+                                    val minutes = totalMinutes % 60
+                                    val timeRemaining = when {
+                                        hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"
+                                        hours > 0 -> "${hours}h"
+                                        minutes > 0 -> "${minutes}m"
+                                        else -> "< 1m"
+                                    }
+                                    val nextPrefix = stringResource(
+                                        R.string.prayer_next_starts_in,
+                                        nextPrayer.name.localizedName(context),
+                                    ).trim()
                                     Text(
-                                        text = stringResource(
-                                            R.string.prayer_next_starts_in,
-                                            nextPrayer.name.localizedName(context),
-                                        ),
+                                        text = "$nextPrefix $timeRemaining",
                                         color = widgetColors.text,
                                         style = MaterialTheme.typography.titleSmall,
                                         fontWeight = FontWeight.Bold,
                                     )
+                                    val locationLabel = widget.locationLabel?.trim() ?: ""
+                                    val sunriseText = stringResource(
+                                        R.string.prayer_sunrise_value,
+                                        timeFormatter.format(Date(schedule.sunriseEpochMillis)),
+                                    )
+                                    val locationSunrise = if (locationLabel.isNotEmpty()) {
+                                        "$locationLabel • $sunriseText"
+                                    } else {
+                                        sunriseText
+                                    }
                                     Text(
-                                        text = stringResource(
-                                            R.string.prayer_sunrise_value,
-                                            timeFormatter.format(Date(schedule.sunriseEpochMillis)),
-                                        ),
+                                        text = locationSunrise,
                                         color = widgetColors.secondaryText,
                                         style = MaterialTheme.typography.labelSmall,
-                                    )
-                                }
-                                Surface(
-                                    shape = CircleShape,
-                                    color = widgetColors.accent,
-                                ) {
-                                    Text(
-                                        "LIVE",
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                        color = widgetColors.liveText,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Black,
                                     )
                                 }
                             }
                         }
 
-                        // 5 prayer slots
+                        // 5 prayer slots with small am/pm
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
                             schedule.prayers.forEach { prayer ->
                                 val isCurrent = prayer.name == currentPrayer
+                                val prayerDate = Date(prayer.epochMillis)
+                                val is24 = android.text.format.DateFormat.is24HourFormat(context)
+                                val timeDigits = if (is24) {
+                                    SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
+                                        timeZone = TimeZone.getTimeZone(schedule.timezoneId)
+                                    }.format(prayerDate)
+                                } else {
+                                    SimpleDateFormat("h:mm", Locale.getDefault()).apply {
+                                        timeZone = TimeZone.getTimeZone(schedule.timezoneId)
+                                    }.format(prayerDate)
+                                }
+                                val amPm = if (!is24) {
+                                    SimpleDateFormat("a", Locale.getDefault()).apply {
+                                        timeZone = TimeZone.getTimeZone(schedule.timezoneId)
+                                    }.format(prayerDate).lowercase(Locale.getDefault())
+                                } else ""
+
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
                                     color = if (isCurrent) widgetColors.accent else widgetColors.slot,
                                 ) {
                                     Column(
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                     ) {
                                         Text(
@@ -758,14 +774,30 @@ private fun PrayerWidgetSummaryCard(
                                             fontSize = 10.sp,
                                             color = if (isCurrent) widgetColors.accentText else widgetColors.secondaryText,
                                             fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                                            maxLines = 1,
                                         )
-                                        Text(
-                                            text = timeFormatter.format(Date(prayer.epochMillis)),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 11.sp,
-                                            color = if (isCurrent) widgetColors.accentText else widgetColors.text,
-                                        )
+                                        Row(
+                                            verticalAlignment = Alignment.Bottom,
+                                            horizontalArrangement = Arrangement.spacedBy(1.dp),
+                                        ) {
+                                            Text(
+                                                text = timeDigits,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 11.sp,
+                                                color = if (isCurrent) widgetColors.accentText else widgetColors.text,
+                                            )
+                                            if (amPm.isNotEmpty()) {
+                                                Text(
+                                                    text = amPm,
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.Medium,
+                                                    fontSize = 8.sp,
+                                                    color = if (isCurrent) widgetColors.accentText else widgetColors.text,
+                                                    modifier = Modifier.padding(bottom = 0.5.dp),
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
