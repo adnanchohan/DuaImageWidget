@@ -1,6 +1,6 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:configure="com.watchfulai.mywidgets.ui.tasbeeh.TasbeehConfigurationActivity"
+    android:configure="com.watchfultech.mywidgets.ui.tasbeeh.TasbeehConfigurationActivity"
     android:description="@string/gallery_tasbeeh_description"
     android:initialLayout="@layout/tasbeeh_widget"
     android:previewLayout="@layout/tasbeeh_widget"

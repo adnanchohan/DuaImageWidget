@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.watchfulai.mywidgets"
+    namespace = "com.watchfultech.mywidgets"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.watchfulai.mywidgets"
+        applicationId = "com.watchfultech.mywidgets"
         minSdk = 24
         targetSdk = 37
         versionCode = 1

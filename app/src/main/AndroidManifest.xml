@@ -44,7 +44,7 @@
             android:name=".ui.prayer.PrayerWidgetConfigurationActivity"
             android:excludeFromRecents="true"
             android:exported="true"
-            android:taskAffinity="com.watchfulai.mywidgets.prayer_widget_configuration"
+            android:taskAffinity="com.watchfultech.mywidgets.prayer_widget_configuration"
             android:theme="@style/Theme.DuaImageWidget"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -55,7 +55,7 @@
             android:name=".ui.configuration.WidgetConfigurationActivity"
             android:excludeFromRecents="true"
             android:exported="true"
-            android:taskAffinity="com.watchfulai.mywidgets.widget_configuration"
+            android:taskAffinity="com.watchfultech.mywidgets.widget_configuration"
             android:theme="@style/Theme.DuaImageWidget"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -64,7 +64,7 @@
         </activity>
         <activity android:name=".ui.tasbeeh.TasbeehConfigurationActivity"
             android:exported="true" android:excludeFromRecents="true"
-            android:taskAffinity="com.watchfulai.mywidgets.tasbeeh_configuration"
+            android:taskAffinity="com.watchfultech.mywidgets.tasbeeh_configuration"
             android:theme="@style/Theme.DuaImageWidget" android:windowSoftInputMode="adjustResize">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" /></intent-filter>
         </activity>
