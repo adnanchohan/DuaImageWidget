@@ -92,6 +92,36 @@ class AlAdhanPrayerApi {
             epochMillis = parsePrayerTime(dateKey, timings.getString(key), timezone),
         )
 
+        val sunriseEpoch = parsePrayerTime(
+            dateKey,
+            timings.getString("Sunrise"),
+            timezone,
+        )
+        val maghribEpoch = parsePrayerTime(
+            dateKey,
+            timings.getString("Maghrib"),
+            timezone,
+        )
+        val tomorrowFajrEpoch = parsePrayerTime(
+            tomorrowKey,
+            tomorrowTimings.getString("Fajr"),
+            timezone,
+        )
+        val ishraqEpoch = sunriseEpoch + 15 * 60_000L
+        val chashtEpoch = sunriseEpoch + ((maghribEpoch - sunriseEpoch) / 4)
+        val awwabinEpoch = maghribEpoch + 15 * 60_000L
+        val tahajjudEpoch = if (timings.has("Lastthird")) {
+            parsePrayerTime(dateKey, timings.getString("Lastthird"), timezone)
+        } else {
+            maghribEpoch + (2 * (tomorrowFajrEpoch - maghribEpoch) / 3)
+        }
+        val nafilList = listOf(
+            NafilMoment(NafilPrayerName.ISHRAQ, ishraqEpoch),
+            NafilMoment(NafilPrayerName.CHASHT, chashtEpoch),
+            NafilMoment(NafilPrayerName.AWWABIN, awwabinEpoch),
+            NafilMoment(NafilPrayerName.TAHAJJUD, tahajjudEpoch),
+        )
+
         return PrayerSchedule(
             dateKey = dateKey,
             timezoneId = timezoneId,
@@ -105,11 +135,7 @@ class AlAdhanPrayerApi {
                 month = tomorrowHijri.getJSONObject("month").getInt("number"),
                 year = tomorrowHijri.getString("year").toInt(),
             ),
-            sunriseEpochMillis = parsePrayerTime(
-                dateKey,
-                timings.getString("Sunrise"),
-                timezone,
-            ),
+            sunriseEpochMillis = sunriseEpoch,
             prayers = listOf(
                 prayer(PrayerName.FAJR, "Fajr"),
                 prayer(PrayerName.DHUHR, "Dhuhr"),
@@ -117,12 +143,9 @@ class AlAdhanPrayerApi {
                 prayer(PrayerName.MAGHRIB, "Maghrib"),
                 prayer(PrayerName.ISHA, "Isha"),
             ),
-            tomorrowFajrEpochMillis = parsePrayerTime(
-                tomorrowKey,
-                tomorrowTimings.getString("Fajr"),
-                timezone,
-            ),
+            tomorrowFajrEpochMillis = tomorrowFajrEpoch,
             calculationMethod = metadata.getJSONObject("method").getString("name"),
+            nafilPrayers = nafilList,
         )
     }
 

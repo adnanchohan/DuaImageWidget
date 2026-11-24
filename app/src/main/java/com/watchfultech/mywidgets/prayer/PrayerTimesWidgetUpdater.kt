@@ -119,6 +119,31 @@ object PrayerTimesWidgetUpdater {
                 setTextColor(viewIds.time, textColor)
             }
 
+            // Row 2: 4 Nafil prayer times (Ishraq, Chasht, Awwabin, Tahajjud)
+            val currentNafil = schedule.currentNafilAt(now)
+            schedule.nafils.forEach { nafil ->
+                val viewIds = nafilSlotViewIds.getValue(nafil.name)
+                setTextViewText(viewIds.name, nafil.name.localizedName(context))
+                setTextViewText(
+                    viewIds.time,
+                    formatPrayerTimeWithSmallAmPm(context, nafil.epochMillis, schedule.timezoneId),
+                )
+                val isNafilActive = currentNafil == nafil.name
+                setInt(
+                    viewIds.container,
+                    "setBackgroundResource",
+                    if (isNafilActive) R.drawable.bg_prayer_slot_active else R.drawable.bg_prayer_slot,
+                )
+                val textColor = context.getColor(
+                    if (isNafilActive) R.color.prayer_active_text else R.color.prayer_slot_text,
+                )
+                val secondaryColor = context.getColor(
+                    if (isNafilActive) R.color.prayer_active_text else R.color.prayer_slot_text_secondary,
+                )
+                setTextColor(viewIds.name, secondaryColor)
+                setTextColor(viewIds.time, textColor)
+            }
+
             setOnClickPendingIntent(
                 R.id.prayer_widget_root,
                 configurationPendingIntent(context, appWidgetId),
@@ -234,5 +259,12 @@ object PrayerTimesWidgetUpdater {
         PrayerName.ASR to SlotViewIds(R.id.slot_asr, R.id.name_asr, R.id.time_asr),
         PrayerName.MAGHRIB to SlotViewIds(R.id.slot_maghrib, R.id.name_maghrib, R.id.time_maghrib),
         PrayerName.ISHA to SlotViewIds(R.id.slot_isha, R.id.name_isha, R.id.time_isha),
+    )
+
+    private val nafilSlotViewIds = mapOf(
+        NafilPrayerName.ISHRAQ to SlotViewIds(R.id.slot_ishraq, R.id.name_ishraq, R.id.time_ishraq),
+        NafilPrayerName.CHASHT to SlotViewIds(R.id.slot_chasht, R.id.name_chasht, R.id.time_chasht),
+        NafilPrayerName.AWWABIN to SlotViewIds(R.id.slot_awwabin, R.id.name_awwabin, R.id.time_awwabin),
+        NafilPrayerName.TAHAJJUD to SlotViewIds(R.id.slot_tahajjud, R.id.name_tahajjud, R.id.time_tahajjud),
     )
 }

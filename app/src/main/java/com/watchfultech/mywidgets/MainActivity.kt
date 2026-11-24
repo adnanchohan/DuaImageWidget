@@ -534,9 +534,9 @@ private fun PrayerShowcaseCard() {
                 ),
                 shape = RoundedCornerShape(22.dp),
             )
-            .padding(18.dp),
+            .padding(14.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
             // Top Row: Mosque Icon & Hijri Date (Location shifted to Next Prayer tile)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -547,7 +547,7 @@ private fun PrayerShowcaseCard() {
                     painter = painterResource(R.drawable.ic_mosque),
                     contentDescription = null,
                     tint = widgetColors.gold,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(16.dp),
                 )
                 Text(
                     stringResource(R.string.showcase_prayer_hijri),
@@ -559,13 +559,13 @@ private fun PrayerShowcaseCard() {
 
             // Hero Card: Next prayer & (Location • Sunrise) without LIVE badge
             Surface(
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(12.dp),
                 color = widgetColors.heroBg,
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -615,11 +615,11 @@ private fun PrayerShowcaseCard() {
                 prayers.forEach { (name, time, amPm) ->
                     val isCurrent = name == "Asr"
                     Surface(
-                        shape = RoundedCornerShape(10.dp),
+                        shape = RoundedCornerShape(8.dp),
                         color = if (isCurrent) widgetColors.accent else widgetColors.slot,
                     ) {
                         Column(
-                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp),
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text(
@@ -644,6 +644,59 @@ private fun PrayerShowcaseCard() {
                                 Text(
                                     text = amPm,
                                     color = if (isCurrent) widgetColors.accentText else widgetColors.text,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(bottom = 0.5.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Row 2: 4 Nafil Prayers (Ishraq, Chasht, Awwabin, Tahajjud)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                val nafils = listOf(
+                    Triple("Ishraq", "06:30", "am"),
+                    Triple("Chasht", "09:15", "am"),
+                    Triple("Awwabin", "06:25", "pm"),
+                    Triple("Tahajjud", "02:45", "am"),
+                )
+                nafils.forEach { (name, time, amPm) ->
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = widgetColors.slot,
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Text(
+                                text = name,
+                                color = widgetColors.secondaryText,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Normal,
+                                maxLines = 1,
+                            )
+                            Row(
+                                verticalAlignment = Alignment.Bottom,
+                                horizontalArrangement = Arrangement.spacedBy(1.dp),
+                            ) {
+                                Text(
+                                    text = time,
+                                    color = widgetColors.text,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                Text(
+                                    text = amPm,
+                                    color = widgetColors.text,
                                     style = MaterialTheme.typography.labelSmall,
                                     fontSize = 8.sp,
                                     fontWeight = FontWeight.Medium,

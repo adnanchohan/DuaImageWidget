@@ -180,6 +180,11 @@
     <string name="prayer_asr">عصر</string>
     <string name="prayer_maghrib">مغرب</string>
     <string name="prayer_isha">عشاء</string>
+    <string name="prayer_ishraq">اشراق</string>
+    <string name="prayer_chasht">چاشت</string>
+    <string name="prayer_awwabin">اوابین</string>
+    <string name="prayer_tahajjud">تہجد</string>
+    <string name="prayer_nafil_title">نوافل</string>
     <string name="prayer_sunrise_value">طلوع %1$s</string>
     <string name="prayer_next_starts_in">اگلی %1$s میں </string>
     <string name="prayer_hijri_date_format">%1$d %2$s %3$d ھ</string>

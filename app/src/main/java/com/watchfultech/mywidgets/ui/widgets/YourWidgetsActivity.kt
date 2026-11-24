@@ -659,7 +659,7 @@ private fun PrayerWidgetSummaryCard(
 
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(7.dp),
                     ) {
                         // Top bar: Mosque Icon + Hijri date (Location shifted to Next Prayer tile)
                         Row(
@@ -692,7 +692,7 @@ private fun PrayerWidgetSummaryCard(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                    .padding(horizontal = 12.dp, vertical = 6.dp),
                                 horizontalArrangement = Arrangement.Start,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -765,7 +765,7 @@ private fun PrayerWidgetSummaryCard(
                                     color = if (isCurrent) widgetColors.accent else widgetColors.slot,
                                 ) {
                                     Column(
-                                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp),
+                                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                     ) {
                                         Text(
@@ -794,6 +794,74 @@ private fun PrayerWidgetSummaryCard(
                                                     fontWeight = FontWeight.Medium,
                                                     fontSize = 8.sp,
                                                     color = if (isCurrent) widgetColors.accentText else widgetColors.text,
+                                                    modifier = Modifier.padding(bottom = 0.5.dp),
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Row 2: 4 Nafil prayer slots (Ishraq, Chasht, Awwabin, Tahajjud)
+                        val currentNafil = schedule.currentNafilAt(now)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            schedule.nafils.forEach { nafil ->
+                                val isNafilCurrent = nafil.name == currentNafil
+                                val nafilDate = Date(nafil.epochMillis)
+                                val is24 = android.text.format.DateFormat.is24HourFormat(context)
+                                val timeDigits = if (is24) {
+                                    SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
+                                        timeZone = TimeZone.getTimeZone(schedule.timezoneId)
+                                    }.format(nafilDate)
+                                } else {
+                                    SimpleDateFormat("h:mm", Locale.getDefault()).apply {
+                                        timeZone = TimeZone.getTimeZone(schedule.timezoneId)
+                                    }.format(nafilDate)
+                                }
+                                val amPm = if (!is24) {
+                                    SimpleDateFormat("a", Locale.getDefault()).apply {
+                                        timeZone = TimeZone.getTimeZone(schedule.timezoneId)
+                                    }.format(nafilDate).lowercase(Locale.getDefault())
+                                } else ""
+
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = if (isNafilCurrent) widgetColors.accent else widgetColors.slot,
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                    ) {
+                                        Text(
+                                            text = nafil.name.localizedName(context),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontSize = 10.sp,
+                                            color = if (isNafilCurrent) widgetColors.accentText else widgetColors.secondaryText,
+                                            fontWeight = if (isNafilCurrent) FontWeight.Bold else FontWeight.Normal,
+                                            maxLines = 1,
+                                        )
+                                        Row(
+                                            verticalAlignment = Alignment.Bottom,
+                                            horizontalArrangement = Arrangement.spacedBy(1.dp),
+                                        ) {
+                                            Text(
+                                                text = timeDigits,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 11.sp,
+                                                color = if (isNafilCurrent) widgetColors.accentText else widgetColors.text,
+                                            )
+                                            if (amPm.isNotEmpty()) {
+                                                Text(
+                                                    text = amPm,
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.Medium,
+                                                    fontSize = 8.sp,
+                                                    color = if (isNafilCurrent) widgetColors.accentText else widgetColors.text,
                                                     modifier = Modifier.padding(bottom = 0.5.dp),
                                                 )
                                             }

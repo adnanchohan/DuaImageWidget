@@ -23,8 +23,8 @@ class PrayerScheduleTest {
     )
 
     @Test
-    fun currentPrayer_respectsSunriseAsEndOfFajrWindow() {
-        assertNull(schedule.currentPrayerAt(99L))
+    fun currentPrayer_fajrUntilSunriseAndDhuhrAtDhuhr() {
+        assertEquals(PrayerName.ISHA, schedule.currentPrayerAt(99L))
         assertEquals(PrayerName.FAJR, schedule.currentPrayerAt(100L))
         assertEquals(PrayerName.FAJR, schedule.currentPrayerAt(199L))
         assertNull(schedule.currentPrayerAt(200L))
@@ -33,6 +33,21 @@ class PrayerScheduleTest {
         assertEquals(PrayerName.ASR, schedule.currentPrayerAt(400L))
         assertEquals(PrayerName.MAGHRIB, schedule.currentPrayerAt(500L))
         assertEquals(PrayerName.ISHA, schedule.currentPrayerAt(600L))
+    }
+
+    @Test
+    fun nafilPrayers_calculatedProperly() {
+        val nafils = schedule.nafils
+        assertEquals(4, nafils.size)
+        val ishraq = nafils.first { it.name == NafilPrayerName.ISHRAQ }
+        val chasht = nafils.first { it.name == NafilPrayerName.CHASHT }
+        val awwabin = nafils.first { it.name == NafilPrayerName.AWWABIN }
+        val tahajjud = nafils.first { it.name == NafilPrayerName.TAHAJJUD }
+
+        assertEquals(200L + 15 * 60_000L, ishraq.epochMillis)
+        assertEquals(200L + (500L - 200L) / 4, chasht.epochMillis)
+        assertEquals(500L + 15 * 60_000L, awwabin.epochMillis)
+        assertEquals(500L + (2 * (700L - 500L) / 3), tahajjud.epochMillis)
     }
 
     @Test

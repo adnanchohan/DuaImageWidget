@@ -32,6 +32,27 @@ data class HijriDate(
     val year: Int,
 )
 
+enum class NafilPrayerName {
+    ISHRAQ,
+    CHASHT,
+    AWWABIN,
+    TAHAJJUD;
+
+    fun localizedName(context: Context): String = context.getString(
+        when (this) {
+            ISHRAQ -> R.string.prayer_ishraq
+            CHASHT -> R.string.prayer_chasht
+            AWWABIN -> R.string.prayer_awwabin
+            TAHAJJUD -> R.string.prayer_tahajjud
+        },
+    )
+}
+
+data class NafilMoment(
+    val name: NafilPrayerName,
+    val epochMillis: Long,
+)
+
 data class PrayerSchedule(
     val dateKey: String,
     val timezoneId: String,
@@ -42,9 +63,35 @@ data class PrayerSchedule(
     val tomorrowFajrEpochMillis: Long,
     val calculationMethod: String,
     val fetchedAtEpochMillis: Long = System.currentTimeMillis(),
+    val nafilPrayers: List<NafilMoment> = emptyList(),
 ) {
     init {
         require(prayers.map(PrayerMoment::name) == PrayerName.entries)
+    }
+
+    val nafils: List<NafilMoment>
+        get() = if (nafilPrayers.isNotEmpty()) {
+            nafilPrayers
+        } else {
+            computeDefaultNafils()
+        }
+
+    fun computeDefaultNafils(): List<NafilMoment> {
+        val byName = prayers.associateBy(PrayerMoment::name)
+        val dhuhr = byName.getValue(PrayerName.DHUHR).epochMillis
+        val maghrib = byName.getValue(PrayerName.MAGHRIB).epochMillis
+
+        val ishraq = sunriseEpochMillis + 15 * 60_000L
+        val chasht = sunriseEpochMillis + ((maghrib - sunriseEpochMillis) / 4)
+        val awwabin = maghrib + 15 * 60_000L
+        val tahajjud = maghrib + (2 * (tomorrowFajrEpochMillis - maghrib) / 3)
+
+        return listOf(
+            NafilMoment(NafilPrayerName.ISHRAQ, ishraq),
+            NafilMoment(NafilPrayerName.CHASHT, chasht),
+            NafilMoment(NafilPrayerName.AWWABIN, awwabin),
+            NafilMoment(NafilPrayerName.TAHAJJUD, tahajjud),
+        )
     }
 
     fun nextPrayerAt(nowEpochMillis: Long): PrayerMoment =
@@ -65,13 +112,34 @@ data class PrayerSchedule(
         val isha = byName.getValue(PrayerName.ISHA).epochMillis
 
         return when {
-            nowEpochMillis < fajr -> null
+            nowEpochMillis < fajr -> PrayerName.ISHA
             nowEpochMillis < sunriseEpochMillis -> PrayerName.FAJR
             nowEpochMillis < dhuhr -> null
             nowEpochMillis < asr -> PrayerName.DHUHR
             nowEpochMillis < maghrib -> PrayerName.ASR
             nowEpochMillis < isha -> PrayerName.MAGHRIB
             else -> PrayerName.ISHA
+        }
+    }
+
+    fun currentNafilAt(nowEpochMillis: Long): NafilPrayerName? {
+        val byName = prayers.associateBy(PrayerMoment::name)
+        val fajr = byName.getValue(PrayerName.FAJR).epochMillis
+        val dhuhr = byName.getValue(PrayerName.DHUHR).epochMillis
+        val isha = byName.getValue(PrayerName.ISHA).epochMillis
+
+        val nafilMap = nafils.associateBy(NafilMoment::name)
+        val ishraq = nafilMap.getValue(NafilPrayerName.ISHRAQ).epochMillis
+        val chasht = nafilMap.getValue(NafilPrayerName.CHASHT).epochMillis
+        val awwabin = nafilMap.getValue(NafilPrayerName.AWWABIN).epochMillis
+        val tahajjud = nafilMap.getValue(NafilPrayerName.TAHAJJUD).epochMillis
+
+        return when {
+            nowEpochMillis in ishraq until chasht -> NafilPrayerName.ISHRAQ
+            nowEpochMillis in chasht until (dhuhr - 10 * 60_000L) -> NafilPrayerName.CHASHT
+            nowEpochMillis in awwabin until isha -> NafilPrayerName.AWWABIN
+            nowEpochMillis >= tahajjud || nowEpochMillis < fajr -> NafilPrayerName.TAHAJJUD
+            else -> null
         }
     }
 }
